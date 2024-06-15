@@ -1,5 +1,7 @@
+from decouple import config
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.contrib.sites import requests
 from rest_framework import viewsets, status
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.authtoken.models import Token
@@ -24,14 +26,12 @@ class UserViewSet(GetPermissionByModelActionMixin, viewsets.ReadOnlyModelViewSet
         'retrieve': [IsOwnerOrAdminUser],
     }
 
-    @action(methods=['POST'], detail=False, url_path='login', url_name='login')
+    @action(methods=['POST'], detail=False, url_path='login', url_name='cms login')
     def login(self, request, *args, **kwargs):
         """Login with username and password and return a token
 
         :param request: { "username": "admin", "password": "admin" }
-        :param args:
-        :param kwargs:
-        :return: {"token": "token"}
+        :return: {"token": "token string"}
         """
         username = request.data.get('username')
         password = request.data.get('password')
@@ -41,3 +41,35 @@ class UserViewSet(GetPermissionByModelActionMixin, viewsets.ReadOnlyModelViewSet
             token, created = Token.objects.get_or_create(user=user)
             return Response({'token': token.key}, status=status.HTTP_200_OK)
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    @action(methods=['POST'], detail=False, url_path='wechat-mini-login', url_name='wechat mini login')
+    def wechat_mini_login(self, request, *args, **kwargs):
+        """wechat mini login
+
+        :param request: { "code": "code" }
+        :return: {"token": "token string"}
+        """
+        code = request.data.get('code')
+        if not code:
+            return Response({'error': 'Code is required'}, status=status.HTTP_400_BAD_REQUEST)
+        wechat_data = requests.get(
+            config('WECHAT_MINI_GET_SESSION_KEY_URL'),
+            {
+                "appid": config('WECHAT_MINI_APPID'),
+                "secret": config('WECHAT_MINI_SECRET'),
+                "js_code": code,
+                "grant_type": "authorization_code",
+            },
+        ).json()
+        open_id = wechat_data.get('openid')
+        if not open_id:
+            return Response({'error': 'WeChat authentication failed'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user, created = User.objects.get_or_create(open_id=open_id, defaults={
+            'open_id': open_id,
+            'nickname': wechat_data.get('nickname', ''),
+            'avatar_url': wechat_data.get('avatar_url', '')
+        })
+
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response({'token': token.key})
