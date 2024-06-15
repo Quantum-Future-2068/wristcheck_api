@@ -20,6 +20,6 @@ from account.urls import account_urlpatterns
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('drf-admin/', include('rest_framework.urls', namespace='rest_framework'))
+    path('drf-admin/', include('rest_framework.urls', namespace='rest_framework')),
 ]
 urlpatterns.extend(account_urlpatterns)
