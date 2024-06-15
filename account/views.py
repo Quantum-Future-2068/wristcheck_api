@@ -1,16 +1,28 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from rest_framework import viewsets, status
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 
 from account.serializer import UserSerializer
+from wristcheck_api.permission import GetPermissionByModelActionMixin, IsOwnerOrAdminUser
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(GetPermissionByModelActionMixin, viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    authentication_classes = (
+        SessionAuthentication,
+        TokenAuthentication
+    )
+    permission_classes = [IsAuthenticated]
+    permission_classes_map = {
+        'list': [IsAdminUser],
+        'retrieve': [IsOwnerOrAdminUser],
+    }
 
     @action(methods=['POST'], detail=False, url_path='login', url_name='login')
     def login(self, request, *args, **kwargs):
