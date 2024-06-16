@@ -87,8 +87,9 @@ python manage.py createsuperuser
 python manage.py runserver 127.0.0.1:8000
 ```
 
-此时, 可以访问
-[网站首页](http://127.0.0.1:8000/)
-[admin后台](http://127.0.0.1:8000/admin)
-[API文档登录](http://127.0.0.1:8000/drf-admin/)
+此时, 可以访问[API文档登录](http://127.0.0.1:8000/drf-admin/)
 
+这里是为Wristcheck的微信小程序提供的API接口文档：
+- Api Root列出了资源对象和其API地址的映射关系，默认提供了对象的CRUD接口。
+- 点击资源对象的API地址，会跳转到资源的管理界面。如果资源对象开放了create、update、delete请求，那么在这里可以进行请求。
+- 自定义的接口在右上角的Extra Actions中。
