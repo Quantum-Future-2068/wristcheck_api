@@ -14,12 +14,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.http import HttpResponse
 from django.urls import path, include
 
-from account.urls import account_urlpatterns
 
 urlpatterns = [
+    path('', lambda request: HttpResponse("Welcome to the Homepage!"), name='home'),
     path('admin/', admin.site.urls),
     path('drf-admin/', include('rest_framework.urls', namespace='rest_framework')),
+    path('api/', include('account.urls')),
 ]
-urlpatterns.extend(account_urlpatterns)
