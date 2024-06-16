@@ -22,6 +22,18 @@ class GetPermissionByModelActionMixin:
         return [permission() for permission in permissions]
 
 
+class IsOwner(BasePermission):
+    """
+    Allows access only to owner.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        if isinstance(obj, User):
+            return obj.id == request.user.id
+        else:
+            return obj.user == request.user
+
+
 class IsOwnerOrSuperUser(BasePermission):
     """
     Allows access only to owner or superuser.

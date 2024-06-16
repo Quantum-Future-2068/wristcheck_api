@@ -7,6 +7,5 @@ class CustomBrowsableAPIRenderer(BrowsableAPIRenderer):
     def get_context(self, *args, **kwargs):
         context = super().get_context(*args, **kwargs)
         context['name'] = 'API'
-        context['description'] = """Here is the API documentation for Wristcheck's WeChat mini app"""
         context['version'] = 'v1.0'
         return context

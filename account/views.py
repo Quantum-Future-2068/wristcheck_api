@@ -24,6 +24,7 @@ class UserViewSet(GetPermissionByModelActionMixin, viewsets.ReadOnlyModelViewSet
     permission_classes_map = {
         'list': [IsAdminUser],
         'retrieve': [IsOwnerOrAdminUser],
+        'profile': [IsAuthenticated]
     }
 
     @action(methods=['POST'], detail=False)
