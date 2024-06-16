@@ -26,7 +26,7 @@ class UserViewSet(GetPermissionByModelActionMixin, viewsets.ReadOnlyModelViewSet
         'retrieve': [IsOwnerOrAdminUser],
     }
 
-    @action(methods=['POST'], detail=False, url_path='login', url_name='cms login')
+    @action(methods=['POST'], detail=False)
     def login(self, request, *args, **kwargs):
         """Login with username and password and return a token
 
@@ -42,7 +42,7 @@ class UserViewSet(GetPermissionByModelActionMixin, viewsets.ReadOnlyModelViewSet
             return Response({'token': token.key}, status=status.HTTP_200_OK)
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
-    @action(methods=['POST'], detail=False, url_path='wechat-mini-login', url_name='wechat mini login')
+    @action(methods=['POST'], detail=False)
     def wechat_mini_login(self, request, *args, **kwargs):
         """wechat mini login
 
@@ -73,3 +73,14 @@ class UserViewSet(GetPermissionByModelActionMixin, viewsets.ReadOnlyModelViewSet
 
         token, _ = Token.objects.get_or_create(user=user)
         return Response({'token': token.key})
+
+    @action(methods=['GET'], detail=False)
+    def profile(self, request):
+        """Get user profile when authenticated
+
+        :param request:
+        :return: json, example: {"id": 1, "username": "admin"}
+        """
+        instance = User.objects.filter(id=request.user.id).first()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
