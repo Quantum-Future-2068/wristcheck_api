@@ -11,6 +11,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 
+from account.models import Social
 from account.serializer import UserSerializer
 from drf.pagination import CustomPagination
 from wristcheck_api.permission import GetPermissionByModelActionMixin, IsOwnerOrAdminUser
@@ -75,11 +76,17 @@ class UserViewSet(GetPermissionByModelActionMixin, viewsets.ReadOnlyModelViewSet
         if not open_id:
             return Response({'error': 'WeChat authentication failed'}, status=status.HTTP_400_BAD_REQUEST)
 
-        user, created = User.objects.get_or_create(open_id=open_id, defaults={
-            'open_id': open_id,
-            'nickname': wechat_data.get('nickname', ''),
-            'avatar_url': wechat_data.get('avatar_url', '')
-        })
+        social = Social.objects.filter(open_id=open_id).first()
+        if not social:
+            user = User.objects.create(username=wechat_data.get('nickname', ''))
+            Social.objects.create(open_id=open_id, defaults={
+                'user': user,
+                'open_id': open_id,
+                'nickname': wechat_data.get('nickname', ''),
+                'avatar_url': wechat_data.get('avatar_url', '')
+            })
+        else:
+            user = social.user
 
         token, _ = Token.objects.get_or_create(user=user)
         return Response({'token': token.key})

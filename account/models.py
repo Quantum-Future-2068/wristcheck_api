@@ -1,3 +1,12 @@
+from django.contrib.auth.models import User
 from django.db import models
 
-# Create your models here.
+from wristcheck_api.models import TimestampedModel
+
+
+class Social(TimestampedModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    application_type = models.CharField(max_length=50, blank=False, default='wechat_mini_program')
+    open_id = models.CharField(max_length=255, null=False, blank=False)
+    nickname = models.CharField(max_length=100, blank=True)
+    avatar_url = models.URLField(blank=True)
