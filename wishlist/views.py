@@ -1,9 +1,12 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.viewsets import GenericViewSet
 
+from drf.pagination import CustomPagination
 from wishlist.models import Wishlist
 from wishlist.serializer import WishlistSerializer
 from wristcheck_api.permission import GetPermissionByModelActionMixin, IsOwnerOrAdminUser, IsOwner
@@ -28,9 +31,15 @@ class WishlistViewSet(
         'list': [IsAdminUser],
         'retrieve': [IsOwnerOrAdminUser],
         'create': [IsAdminUser],
-        'destroy': [IsAdminUser],
+        'destroy': [IsOwnerOrAdminUser],
         'add': [IsAuthenticated]
     }
+    pagination_class = CustomPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['watch_id', 'user__username']
+    search_fields = ['watch_id', 'user__username']
+    ordering_fields = ['created_at', 'updated_at']
+    ordering = ['-updated_at']
 
     @action(methods=['POST'], detail=False)
     def add(self, request):

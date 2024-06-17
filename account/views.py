@@ -2,14 +2,17 @@ from decouple import config
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.contrib.sites import requests
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 
 from account.serializer import UserSerializer
+from drf.pagination import CustomPagination
 from wristcheck_api.permission import GetPermissionByModelActionMixin, IsOwnerOrAdminUser
 
 
@@ -26,6 +29,12 @@ class UserViewSet(GetPermissionByModelActionMixin, viewsets.ReadOnlyModelViewSet
         'retrieve': [IsOwnerOrAdminUser],
         'profile': [IsAuthenticated]
     }
+    pagination_class = CustomPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['username', 'email', 'is_staff', 'is_superuser', 'is_active']
+    search_fields = ['username', 'email']
+    ordering_fields = ['date_joined', 'last_login']
+    ordering = ['-last_login']
 
     @action(methods=['POST'], detail=False)
     def login(self, request, *args, **kwargs):

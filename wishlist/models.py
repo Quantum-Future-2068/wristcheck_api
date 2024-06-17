@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 
-from models import TimestampedModel
+from wristcheck_api.models import TimestampedModel
 
 
 class Wishlist(TimestampedModel):
