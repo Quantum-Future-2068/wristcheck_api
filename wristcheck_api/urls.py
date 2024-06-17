@@ -14,11 +14,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.http import HttpResponse
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from account.views import UserViewSet
+from track.views import WatchVisitRecordViewSet
 from wishlist.views import WishlistViewSet
 
 urlpatterns = [
@@ -30,4 +30,5 @@ urlpatterns = [
 router = DefaultRouter()
 router.register(r'user', UserViewSet)
 router.register(r'wishlist', WishlistViewSet)
+router.register(r'watch-visit', WatchVisitRecordViewSet)
 urlpatterns.extend(router.urls)
