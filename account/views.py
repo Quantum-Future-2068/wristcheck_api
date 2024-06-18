@@ -3,6 +3,9 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.contrib.sites import requests
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular import openapi
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets, status
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.authtoken.models import Token
@@ -36,6 +39,23 @@ class UserViewSet(GetPermissionByModelActionMixin, viewsets.ReadOnlyModelViewSet
     search_fields = ['username', 'email']
     ordering_fields = ['date_joined', 'last_login']
     ordering = ['-last_login']
+
+    from drf_spectacular.utils import extend_schema, OpenApiParameter
+    from rest_framework.filters import OrderingFilter
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='ordering',
+                type=OpenApiTypes.STR,
+                description='Which field to use when ordering the results.',
+                enum=['date_joined', 'last_login'],
+                required=False
+            )
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     @action(methods=['POST'], detail=False)
     def login(self, request, *args, **kwargs):

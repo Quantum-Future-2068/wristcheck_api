@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from rest_framework.routers import DefaultRouter
 
 from account.views import UserViewSet
@@ -25,10 +26,13 @@ urlpatterns = [
     # path('', lambda request: HttpResponse("Welcome to the Homepage!"), name='home'),
     path('admin/', admin.site.urls),
     path('drf-admin/', include('rest_framework.urls', namespace='rest_framework')),
+    path('doc/', SpectacularAPIView.as_view(), name='schema'),
+    path('doc/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('doc/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
 
 router = DefaultRouter()
 router.register(r'user', UserViewSet)
 router.register(r'wishlist', WishlistViewSet)
-router.register(r'watch-visit', WatchVisitRecordViewSet)
+router.register(r'track/watch-visit', WatchVisitRecordViewSet)
 urlpatterns.extend(router.urls)

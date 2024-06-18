@@ -4,6 +4,8 @@ from django.utils import timezone
 from datetime import timedelta
 
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -33,8 +35,19 @@ class WatchVisitRecordViewSet(GetPermissionByModelActionMixin, viewsets.ModelVie
     ordering_fields = ['created_at']
     ordering = ['-created_at']
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='ordering',
+                type=OpenApiTypes.STR,
+                description='Which field to use when ordering the results.',
+                enum=['created_at'],
+                required=False
+            )
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     @action(detail=False, methods=['post'], url_path='add')
     def add(self, request, *args, **kwargs):

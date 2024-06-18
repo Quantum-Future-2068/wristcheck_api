@@ -1,4 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import mixins
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.decorators import action
@@ -9,6 +11,7 @@ from rest_framework.viewsets import GenericViewSet
 from drf.pagination import CustomPagination
 from wishlist.models import Wishlist
 from wishlist.serializer import WishlistSerializer
+from wristcheck_api.constants import USUAL_ORDERING_FIELDS, USUAL_ORDERING
 from wristcheck_api.permission import GetPermissionByModelActionMixin, IsOwnerOrAdminUser, IsOwner
 
 
@@ -38,8 +41,22 @@ class WishlistViewSet(
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['watch_id', 'user__username']
     search_fields = ['watch_id', 'user__username']
-    ordering_fields = ['created_at', 'updated_at']
-    ordering = ['-updated_at']
+    ordering_fields = USUAL_ORDERING_FIELDS
+    ordering = USUAL_ORDERING
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='ordering',
+                type=OpenApiTypes.STR,
+                description='Which field to use when ordering the results.',
+                enum=USUAL_ORDERING_FIELDS,
+                required=False
+            )
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     @action(methods=['POST'], detail=False)
     def add(self, request):

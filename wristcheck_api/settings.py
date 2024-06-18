@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'rest_framework.authtoken',
+    'drf_spectacular',
     'banner.apps.BannerConfig',
     "wishlist.apps.WishlistConfig",
     "account.apps.AccountConfig",
@@ -148,6 +149,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Django Rest Framework
 # https://www.django-rest-framework.org/
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
         'drf.renderers.CustomBrowsableAPIRenderer',
@@ -155,6 +161,16 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# https://drf-spectacular.readthedocs.io/en/latest/settings.html
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Wristcheck API',
+    'DESCRIPTION': 'API documentation',
+    'VERSION': 'v1',
+    'SERVE_PERMISSIONS': ['rest_framework.permissions.IsAdminUser'],
+    'COMPONENT_SPLIT_REQUEST': True,
 }
 
 
