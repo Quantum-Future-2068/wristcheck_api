@@ -12,6 +12,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from drf.pagination import CustomPagination
+from wristcheck_api.constants import DEFAULT_PAGE_SIZE, DEFAULT_MAX_PAGE_SIZE
 from wristcheck_api.permission import GetPermissionByModelActionMixin, IsOwnerOrAdminUser
 from .models import WatchVisitRecord
 from .serializer import WatchVisitRecordSerializer
@@ -43,6 +44,13 @@ class WatchVisitRecordViewSet(GetPermissionByModelActionMixin, viewsets.ModelVie
                 description='Which field to use when ordering the results.',
                 enum=['created_at'],
                 required=False
+            ),
+            OpenApiParameter(
+                name='page_size',
+                type=OpenApiTypes.INT,
+                description=f'Number of results to return per page. Maximum value is {DEFAULT_MAX_PAGE_SIZE}.',
+                required=False,
+                default=DEFAULT_PAGE_SIZE,
             )
         ]
     )

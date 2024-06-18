@@ -11,7 +11,7 @@ from rest_framework.viewsets import GenericViewSet
 from drf.pagination import CustomPagination
 from wishlist.models import Wishlist
 from wishlist.serializer import WishlistSerializer
-from wristcheck_api.constants import USUAL_ORDERING_FIELDS, USUAL_ORDERING
+from wristcheck_api.constants import USUAL_ORDERING_FIELDS, USUAL_ORDERING, DEFAULT_PAGE_SIZE, DEFAULT_MAX_PAGE_SIZE
 from wristcheck_api.permission import GetPermissionByModelActionMixin, IsOwnerOrAdminUser, IsOwner
 
 
@@ -52,6 +52,13 @@ class WishlistViewSet(
                 description='Which field to use when ordering the results.',
                 enum=USUAL_ORDERING_FIELDS,
                 required=False
+            ),
+            OpenApiParameter(
+                name='page_size',
+                type=OpenApiTypes.INT,
+                description=f'Number of results to return per page. Maximum value is {DEFAULT_MAX_PAGE_SIZE}.',
+                required=False,
+                default=DEFAULT_PAGE_SIZE,
             )
         ]
     )

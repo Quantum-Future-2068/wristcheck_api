@@ -17,6 +17,7 @@ from rest_framework.response import Response
 from account.models import Social
 from account.serializer import UserSerializer
 from drf.pagination import CustomPagination
+from wristcheck_api.constants import DEFAULT_PAGE_SIZE, DEFAULT_MAX_PAGE_SIZE
 from wristcheck_api.permission import GetPermissionByModelActionMixin, IsOwnerOrAdminUser
 
 
@@ -51,6 +52,13 @@ class UserViewSet(GetPermissionByModelActionMixin, viewsets.ReadOnlyModelViewSet
                 description='Which field to use when ordering the results.',
                 enum=['date_joined', 'last_login'],
                 required=False
+            ),
+            OpenApiParameter(
+                name='page_size',
+                type=OpenApiTypes.INT,
+                description=f'Number of results to return per page. Maximum value is {DEFAULT_MAX_PAGE_SIZE}.',
+                required=False,
+                default=DEFAULT_PAGE_SIZE,
             )
         ]
     )
