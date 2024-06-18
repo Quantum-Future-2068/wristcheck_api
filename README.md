@@ -2,19 +2,12 @@
 
 这是使用Django搭建的restful API项目, 目前用于给小程序和CMS后台提供必要的接口
 
-接口风格, 示例:
-
-- 获取所有用户：GET /api/user/
-- 创建新用户：POST /api/user/
-- 获取单个用户：GET /api/user/{id}/
-- 更新用户：PUT /api/user/{id}/
-- 删除用户：DELETE /api/user/{id}/
-
 ## 1.Requirements
 
 - [Python 3.12.0](https://www.python.org/)
 - [Django 5.0.6](https://www.djangoproject.com/)
 - [djangorestframework 3.15.1](https://www.django-rest-framework.org/)
+- [drf-spectacular](https://drf-spectacular.readthedocs.io/en/latest/)
 
 具体依赖包请查看: `requirements.txt`文件
 
@@ -87,9 +80,10 @@ python manage.py createsuperuser
 python manage.py runserver 127.0.0.1:8000
 ```
 
-可以访问[API文档登录](http://127.0.0.1:8000/api)
+可以访问
 
-这里是为Wristcheck的微信小程序提供的API接口文档：
-- Api Root列出了资源对象和其API地址的映射关系，默认提供了对象的CRUD接口。
-- 点击资源对象的API地址，会跳转到资源的管理界面。如果资源对象开放了create、update、delete请求，那么在这里可以进行请求。
-- 自定义的接口在右上角的Extra Actions中。
+- [admin后台](https://1a83-2408-824e-1514-9830-189d-8641-287f-5df2.ngrok-free.app/admin/)
+- [DRF交互文档](https://1a83-2408-824e-1514-9830-189d-8641-287f-5df2.ngrok-free.app/)
+- [swagger交互文档](https://1a83-2408-824e-1514-9830-189d-8641-287f-5df2.ngrok-free.app/doc/swagger/#/)
+- [redoc文档](https://1a83-2408-824e-1514-9830-189d-8641-287f-5df2.ngrok-free.app/doc/redoc/)
+
