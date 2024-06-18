@@ -19,6 +19,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, Sp
 from rest_framework.routers import DefaultRouter
 
 from account.views import UserViewSet
+from banner.views import BannerViewSet
 from track.views import WatchVisitRecordViewSet
 from wishlist.views import WishlistViewSet
 
@@ -34,5 +35,6 @@ urlpatterns = [
 router = DefaultRouter()
 router.register(r'user', UserViewSet)
 router.register(r'wishlist', WishlistViewSet)
+router.register(r'banner', BannerViewSet)
 router.register(r'track/watch-visit', WatchVisitRecordViewSet)
 urlpatterns.extend(router.urls)
