@@ -26,7 +26,7 @@ urlpatterns = [
     # path('', lambda request: HttpResponse("Welcome to the Homepage!"), name='home'),
     path('admin/', admin.site.urls),
     path('drf-admin/', include('rest_framework.urls', namespace='rest_framework')),
-    path('doc/', SpectacularAPIView.as_view(), name='schema'),
+    path('doc/schema', SpectacularAPIView.as_view(), name='schema'),
     path('doc/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('doc/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]

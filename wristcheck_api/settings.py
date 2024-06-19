@@ -154,6 +154,9 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
     ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
         'drf.renderers.CustomBrowsableAPIRenderer',
@@ -170,7 +173,7 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'API documentation',
     'VERSION': 'v1',
     'SERVE_PERMISSIONS': ['rest_framework.permissions.IsAdminUser'],
-    'COMPONENT_SPLIT_REQUEST': True,
+    'SWAGGER_UI_FAVICON_HREF': 'https://wristcheck.com/images/favicon.ico',
 }
 
 
