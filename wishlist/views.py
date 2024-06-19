@@ -34,7 +34,6 @@ class WishlistViewSet(
     permission_classes_map = {
         'list': [IsAdminUser],
         'retrieve': [IsOwnerOrAdminUser],
-        'create': [IsAdminUser],
         'destroy': [IsOwnerOrAdminUser],
         'add': [IsAuthenticated]
     }
@@ -86,6 +85,18 @@ class WishlistViewSet(
                     }
                 },
                 description='Authentication credentials were not provided.'
+            ),
+            403: OpenApiResponse(
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'error': {
+                            'type': 'string',
+                            'example': 'You do not have permission to perform this action.'
+                        }
+                    }
+                },
+                description='Forbidden'
             )
         }
     )
@@ -110,7 +121,20 @@ class WishlistViewSet(
                         }
                     }
                 },
-                description='Authentication credentials were not provided.')
+                description='Authentication credentials were not provided.'
+            ),
+            403: OpenApiResponse(
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'error': {
+                            'type': 'string',
+                            'example': 'You do not have permission to perform this action.'
+                        }
+                    }
+                },
+                description='Forbidden'
+            )
         }
     )
     def retrieve(self, request, *args, **kwargs):
@@ -134,7 +158,20 @@ class WishlistViewSet(
                         }
                     }
                 },
-                description='Authentication credentials were not provided.')
+                description='Authentication credentials were not provided.'
+            ),
+            403: OpenApiResponse(
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'error': {
+                            'type': 'string',
+                            'example': 'You do not have permission to perform this action.'
+                        }
+                    }
+                },
+                description='Forbidden'
+            )
         }
     )
     def destroy(self, request, *args, **kwargs):
@@ -143,6 +180,19 @@ class WishlistViewSet(
     @extend_schema(
         summary='wishlist_add',
         description='**PERMISSION**: Allows access only to authenticated users.',
+        request={
+            'application/json': {
+                'type': 'object',
+                'properties': {
+                    'watch_id': {
+                        'type': 'string',
+                        'description': 'ID of the watch to be added to the wishlist',
+                        'example': '123'
+                    }
+                },
+                'required': ['watch_id']
+            }
+        },
         responses={
             201: OpenApiResponse(
                 response=serializer_class(many=False),

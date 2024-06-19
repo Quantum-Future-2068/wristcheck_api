@@ -6,7 +6,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample, OpenApiResponse
 from rest_framework import viewsets, status
-from rest_framework.authentication import SessionAuthentication, TokenAuthentication
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication, BasicAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -27,6 +27,7 @@ class UserViewSet(
     queryset = User.objects.all()
     serializer_class = UserSerializer
     authentication_classes = (
+        BasicAuthentication,
         SessionAuthentication,
         TokenAuthentication
     )
@@ -84,6 +85,18 @@ class UserViewSet(
                     }
                 },
                 description='Authentication credentials were not provided.'
+            ),
+            403: OpenApiResponse(
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'error': {
+                            'type': 'string',
+                            'example': 'You do not have permission to perform this action.'
+                        }
+                    }
+                },
+                description='Forbidden'
             )
         }
     )
@@ -92,7 +105,25 @@ class UserViewSet(
 
     @extend_schema(
         summary='user_retrieve',
-        description='**PERMISSION**: Allows access only to owner or admin users.'
+        description='**PERMISSION**: Allows access only to owner or admin users.',
+        responses={
+            200: OpenApiResponse(
+                response=serializer_class(many=True),
+                description='Successful Response'
+            ),
+            401: OpenApiResponse(
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'error': {
+                            'type': 'string',
+                            'example': 'Authentication credentials were not provided.'
+                        }
+                    }
+                },
+                description='Authentication credentials were not provided.'
+            ),
+        }
     )
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
