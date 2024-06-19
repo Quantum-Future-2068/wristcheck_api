@@ -1,11 +1,12 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import extend_schema, OpenApiParameter
-from rest_framework import mixins
-from rest_framework.authentication import SessionAuthentication, TokenAuthentication
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
+from rest_framework import mixins, status
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication, BasicAuthentication
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from drf.pagination import CustomPagination
@@ -17,7 +18,6 @@ from wristcheck_api.permission import GetPermissionByModelActionMixin, IsOwnerOr
 
 class WishlistViewSet(
     GetPermissionByModelActionMixin,
-    mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.DestroyModelMixin,
     mixins.ListModelMixin,
@@ -26,6 +26,7 @@ class WishlistViewSet(
     queryset = Wishlist.objects.all()
     serializer_class = WishlistSerializer
     authentication_classes = (
+        BasicAuthentication,
         SessionAuthentication,
         TokenAuthentication
     )
@@ -45,6 +46,8 @@ class WishlistViewSet(
     ordering = USUAL_ORDERING
 
     @extend_schema(
+        summary='wishlist_list',
+        description='**PERMISSION**: Allows access only to admin users.',
         parameters=[
             OpenApiParameter(
                 name='ordering',
@@ -59,28 +62,138 @@ class WishlistViewSet(
                 description=f'Number of results to return per page. Maximum value is {DEFAULT_MAX_PAGE_SIZE}.',
                 required=False,
                 default=DEFAULT_PAGE_SIZE,
+            ),
+            OpenApiParameter(
+                name='search',
+                type=OpenApiTypes.STR,
+                description=f'Filter results by **watch_id** or **username**. ',
+                required=False,
             )
-        ]
+        ],
+        responses={
+            200: OpenApiResponse(
+                response=serializer_class(many=True),
+                description='Successful Response'
+            ),
+            401: OpenApiResponse(
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'error': {
+                            'type': 'string',
+                            'example': 'Authentication credentials were not provided.'
+                        }
+                    }
+                },
+                description='Authentication credentials were not provided.'
+            )
+        }
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
+    @extend_schema(
+        summary='wishlist_retrieve',
+        description='**PERMISSION**: Allows access only to owner or admin users.',
+        responses={
+            200: OpenApiResponse(
+                response=serializer_class(many=False),
+                description='Successful Response'
+            ),
+            401: OpenApiResponse(
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'error': {
+                            'type': 'string',
+                            'example': 'Authentication credentials were not provided.'
+                        }
+                    }
+                },
+                description='Authentication credentials were not provided.')
+        }
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @extend_schema(
+        summary='wishlist_retrieve',
+        description='**PERMISSION**: Allows access only to owner or admin users.',
+        responses={
+            204: OpenApiResponse(
+                response=None,
+                description='HTTP No Content Successful Response'
+            ),
+            401: OpenApiResponse(
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'error': {
+                            'type': 'string',
+                            'example': 'Authentication credentials were not provided.'
+                        }
+                    }
+                },
+                description='Authentication credentials were not provided.')
+        }
+    )
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
+
+    @extend_schema(
+        summary='wishlist_add',
+        description='**PERMISSION**: Allows access only to authenticated users.',
+        responses={
+            201: OpenApiResponse(
+                response=serializer_class(many=False),
+                description='Successful Response'
+            ),
+            401: OpenApiResponse(
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'error': {
+                            'type': 'string',
+                            'example': 'Authentication credentials were not provided.'
+                        }
+                    }
+                },
+                description='Authentication credentials were not provided.'
+            )
+        }
+    )
     @action(methods=['POST'], detail=False)
     def add(self, request):
-        """Add watch to wishlist
-
-        :param request: {"watch_id": "123"}
-        :return: {"user": 1, "watch_id": "123"}
-        """
         request.data['user'] = request.user.id
-        return super().create(request)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+    @extend_schema(
+        summary='wishlist_my_own',
+        description='**PERMISSION**: Allows access only to authenticated users.',
+        responses={
+            200: OpenApiResponse(
+                response=serializer_class(many=True),
+                description='Successful Response'
+            ),
+            401: OpenApiResponse(
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'error': {
+                            'type': 'string',
+                            'example': 'Authentication credentials were not provided.'
+                        }
+                    }
+                },
+                description='Authentication credentials were not provided.'
+            )
+        }
+    )
     @action(methods=['GET'], detail=False)
     def my_own(self, request):
-        """Get my own wishlist
-
-        :param request:
-        :return: json, example: [{"user": 1, "watch_id": "123"}]
-        """
         self.queryset = self.get_queryset().filter(user=request.user)
         return self.list(request)

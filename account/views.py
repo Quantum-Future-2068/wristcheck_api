@@ -64,11 +64,28 @@ class UserViewSet(
             OpenApiParameter(
                 name='search',
                 type=OpenApiTypes.STR,
-                description=f'Filter results by username or email. ',
-                enum=['username', 'email'],
+                description=f'Filter results by **username** or **email**. ',
                 required=False,
             )
-        ]
+        ],
+        responses={
+            200: OpenApiResponse(
+                response=serializer_class(many=True),
+                description='Successful Response'
+            ),
+            401: OpenApiResponse(
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'error': {
+                            'type': 'string',
+                            'example': 'Authentication credentials were not provided.'
+                        }
+                    }
+                },
+                description='Authentication credentials were not provided.'
+            )
+        }
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
@@ -191,7 +208,7 @@ class UserViewSet(
                         }
                     }
                 },
-                description='Invalid Request, Code is required'
+                description='Code is required'
             ),
             401: OpenApiResponse(response={
                 'type': 'object',
@@ -269,45 +286,33 @@ class UserViewSet(
         description='Retrieve the profile of the authenticated user',
         responses={
             200: OpenApiResponse(
-                response={
-                    'type': 'object',
-                    'properties': {
-                        'id': {
-                            'type': 'integer',
-                            'example': 1
-                        },
-                        'username': {
-                            'type': 'string',
-                            'example': 'admin'
-                        }
-                    }
-                },
+                response=serializer_class(many=False),
                 description='Successful Response'
             ),
             401: OpenApiResponse(
                 response={
                     'type': 'object',
                     'properties': {
-                        'detail': {
+                        'error': {
                             'type': 'string',
                             'example': 'Authentication credentials were not provided.'
                         }
                     }
                 },
-                description='Unauthorized'
+                description='Authentication credentials were not provided.'
             )
         },
         examples=[
             OpenApiExample(
                 'Profile Response',
                 summary='An example of a successful profile response',
-                value={'id': 1, 'username': 'admin'},
+                value=serializer_class(many=False).data,
                 response_only=True
             ),
             OpenApiExample(
                 'Unauthorized Response',
                 summary='An example of an unauthorized response',
-                value={'detail': 'Authentication credentials were not provided.'},
+                value={'error': 'Authentication credentials were not provided.'},
                 response_only=True
             )
         ]
