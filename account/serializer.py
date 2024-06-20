@@ -11,7 +11,7 @@ class SocialSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    social = SocialSerializer(read_only=True)
+    social_accounts = SocialSerializer(many=True, read_only=True)
 
     class Meta:
         model = User

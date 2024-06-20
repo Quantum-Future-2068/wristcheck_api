@@ -108,7 +108,7 @@ class UserViewSet(
         description='**PERMISSION**: Allows access only to owner or admin users.',
         responses={
             200: OpenApiResponse(
-                response=serializer_class(many=True),
+                response=serializer_class(many=False),
                 description='Successful Response'
             ),
             401: OpenApiResponse(
