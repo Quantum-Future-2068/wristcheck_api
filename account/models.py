@@ -8,5 +8,5 @@ class Social(TimestampedModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     application_type = models.CharField(max_length=50, blank=False, default='wechat_mini_program')
     open_id = models.CharField(max_length=255, null=False, blank=False)
-    nickname = models.CharField(max_length=100, blank=True)
-    avatar_url = models.URLField(blank=True)
+    nickname = models.CharField(max_length=100, blank=True, null=True)
+    avatar_url = models.URLField(blank=True, null=True)

@@ -1,4 +1,3 @@
-from django.db.models import Func, F, Case, When, Value, BooleanField
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -6,17 +5,18 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAdminUser
 from django_filters.rest_framework import DjangoFilterBackend
 
-from drf.pagination import CustomPagination
+from utils.mixins import CustomCreateModelMixin
+from utils.pagination import CustomPagination
 from services.aliyun_sts import get_sts_token
 from wristcheck_api.constants import USUAL_ORDERING_FIELDS, USUAL_ORDERING
-from wristcheck_api.permission import GetPermissionByModelActionMixin, IsOwnerOrAdminUser
+from utils.permission import CustomGetPermissionMixin
 from .models import Banner
 from django.utils import timezone
 
 from .serializer import BannerSerializer
 
 
-class BannerViewSet(GetPermissionByModelActionMixin, viewsets.ModelViewSet):
+class BannerViewSet(CustomGetPermissionMixin, CustomCreateModelMixin, viewsets.ModelViewSet):
     queryset = Banner.objects.all()
     serializer_class = BannerSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]

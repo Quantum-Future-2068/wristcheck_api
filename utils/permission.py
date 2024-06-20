@@ -1,12 +1,13 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 from rest_framework.permissions import AllowAny, BasePermission
+from rest_framework.settings import api_settings
 
 
-class GetPermissionByModelActionMixin:
+class CustomGetPermissionMixin:
     """
-    根据view类定义的permission_classes_map，动态设置权限, 例如:
+    根据view类定义的permission_classes_map字典控制权限, 例如:
 
-    class UserViewSet(GetPermissionByModelActionMixin, viewsets.ReadOnlyModelViewSet):
+    class UserViewSet(CustomGetPermissionMixin, ReadOnlyModelViewSet):
 
         permission_classes_map = {
             'list': [IsAuthenticated],

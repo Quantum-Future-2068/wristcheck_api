@@ -1,7 +1,7 @@
+import requests
 from decouple import config
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
-from django.contrib.sites import requests
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample, OpenApiResponse
@@ -15,13 +15,13 @@ from rest_framework.response import Response
 
 from account.models import Social
 from account.serializer import UserSerializer
-from drf.pagination import CustomPagination
+from utils.pagination import CustomPagination
 from wristcheck_api.constants import DEFAULT_PAGE_SIZE, DEFAULT_MAX_PAGE_SIZE
-from wristcheck_api.permission import GetPermissionByModelActionMixin, IsOwnerOrAdminUser
+from utils.permission import CustomGetPermissionMixin, IsOwnerOrAdminUser
 
 
 class UserViewSet(
-    GetPermissionByModelActionMixin,
+    CustomGetPermissionMixin,
     viewsets.ReadOnlyModelViewSet
 ):
     queryset = User.objects.all()
@@ -115,7 +115,7 @@ class UserViewSet(
                 response={
                     'type': 'object',
                     'properties': {
-                        'error': {
+                        'detail': {
                             'type': 'string',
                             'example': 'Authentication credentials were not provided.'
                         }
@@ -184,7 +184,7 @@ class UserViewSet(
             OpenApiExample(
                 'Login Error Response',
                 summary='An example of an error response due to invalid credentials',
-                value={'error': 'Invalid credentials'},
+                value={'detail': 'Invalid credentials'},
                 response_only=True
             )
         ]
@@ -198,7 +198,7 @@ class UserViewSet(
         if user is not None:
             token, created = Token.objects.get_or_create(user=user)
             return Response({'token': token.key}, status=status.HTTP_200_OK)
-        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
     @extend_schema(
         tags=['user'],
@@ -233,7 +233,7 @@ class UserViewSet(
                 response={
                     'type': 'object',
                     'properties': {
-                        'error': {
+                        'detail': {
                             'type': 'string',
                             'example': 'Code is required'
                         }
@@ -244,12 +244,12 @@ class UserViewSet(
             401: OpenApiResponse(response={
                 'type': 'object',
                 'properties': {
-                    'error': {
+                    'detail': {
                         'type': 'string',
                         'example': 'Can not get wechat open_id'
                     }
                 }
-            }, description='Can not get wechat open_id'),
+            }, description='Can not get wechat openid'),
         },
         examples=[
             OpenApiExample(
@@ -267,13 +267,13 @@ class UserViewSet(
             OpenApiExample(
                 'Login Error Response1',
                 summary='An example of an error response due to missing code',
-                value={'error': 'Code is required'},
+                value={'detail': 'Code is required'},
                 response_only=True
             ),
             OpenApiExample(
                 'Login Error Response2',
                 summary='An example of an error response due to invalid credentials',
-                value={'error': 'Can not get wechat open_id'},
+                value={'detail': 'Can not get wechat open_id'},
                 response_only=True
             )
         ]
@@ -282,7 +282,7 @@ class UserViewSet(
     def wechat_mini_login(self, request, *args, **kwargs):
         code = request.data.get('code')
         if not code:
-            return Response({'error': 'Code is required'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Code is required'}, status=status.HTTP_400_BAD_REQUEST)
         wechat_data = requests.get(
             config('WECHAT_MINI_GET_SESSION_KEY_URL'),
             {
@@ -294,16 +294,16 @@ class UserViewSet(
         ).json()
         open_id = wechat_data.get('openid')
         if not open_id:
-            return Response({'error': 'Can not get wechat open_id'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'detail': 'Can not get wechat openid'}, status=status.HTTP_401_UNAUTHORIZED)
 
         social = Social.objects.filter(open_id=open_id).first()
         if not social:
             user = User.objects.create(username=wechat_data.get('nickname', ''))
-            Social.objects.create(open_id=open_id, defaults={
+            Social.objects.create(**{
                 'user': user,
                 'open_id': open_id,
-                'nickname': wechat_data.get('nickname', ''),
-                'avatar_url': wechat_data.get('avatar_url', '')
+                'nickname': wechat_data.get('nickname', None),
+                'avatar_url': wechat_data.get('avatar_url', None)
             })
         else:
             user = social.user
@@ -324,7 +324,7 @@ class UserViewSet(
                 response={
                     'type': 'object',
                     'properties': {
-                        'error': {
+                        'detail': {
                             'type': 'string',
                             'example': 'Authentication credentials were not provided.'
                         }
@@ -343,7 +343,7 @@ class UserViewSet(
             OpenApiExample(
                 'Unauthorized Response',
                 summary='An example of an unauthorized response',
-                value={'error': 'Authentication credentials were not provided.'},
+                value={'detail': 'Authentication credentials were not provided.'},
                 response_only=True
             )
         ]

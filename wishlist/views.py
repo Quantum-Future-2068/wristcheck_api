@@ -9,15 +9,17 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from drf.pagination import CustomPagination
+from utils.mixins import CustomCreateModelMixin
+from utils.pagination import CustomPagination
 from wishlist.models import Wishlist
 from wishlist.serializer import WishlistSerializer
 from wristcheck_api.constants import USUAL_ORDERING_FIELDS, USUAL_ORDERING, DEFAULT_PAGE_SIZE, DEFAULT_MAX_PAGE_SIZE
-from wristcheck_api.permission import GetPermissionByModelActionMixin, IsOwnerOrAdminUser, IsOwner
+from utils.permission import CustomGetPermissionMixin, IsOwnerOrAdminUser
 
 
 class WishlistViewSet(
-    GetPermissionByModelActionMixin,
+    CustomGetPermissionMixin,
+    CustomCreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.DestroyModelMixin,
     mixins.ListModelMixin,
@@ -35,7 +37,8 @@ class WishlistViewSet(
         'list': [IsAdminUser],
         'retrieve': [IsOwnerOrAdminUser],
         'destroy': [IsOwnerOrAdminUser],
-        'add': [IsAuthenticated]
+        'add': [IsAuthenticated],
+        'my_own': [IsAuthenticated]
     }
     pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -213,9 +216,9 @@ class WishlistViewSet(
         }
     )
     @action(methods=['POST'], detail=False)
-    def add(self, request):
-        request.data['user'] = request.user.id
-        serializer = self.get_serializer(data=request.data)
+    def add(self, request, *args, **kwargs):
+        data = dict(user=request.user.id, watch_id=request.data['watch_id'])
+        serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)

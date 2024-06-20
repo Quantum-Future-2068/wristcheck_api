@@ -5,7 +5,7 @@ from wishlist.models import Wishlist
 
 
 class WishlistSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    # user = UserSerializer(read_only=True)
 
     class Meta:
         model = Wishlist

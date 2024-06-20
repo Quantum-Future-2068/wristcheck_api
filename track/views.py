@@ -13,15 +13,17 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from drf.pagination import CustomPagination
+from utils.mixins import CustomCreateModelMixin
+from utils.pagination import CustomPagination
 from wristcheck_api.constants import DEFAULT_PAGE_SIZE, DEFAULT_MAX_PAGE_SIZE
-from wristcheck_api.permission import GetPermissionByModelActionMixin, IsOwnerOrAdminUser
+from utils.permission import CustomGetPermissionMixin, IsOwnerOrAdminUser
 from .models import WatchVisitRecord
 from .serializer import WatchVisitRecordSerializer
 
 
 class WatchVisitRecordViewSet(
-    GetPermissionByModelActionMixin,
+    CustomGetPermissionMixin,
+    CustomCreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.DestroyModelMixin,
     mixins.ListModelMixin,
@@ -35,7 +37,8 @@ class WatchVisitRecordViewSet(
         'retrieve': [IsOwnerOrAdminUser],
         'destroy': [IsAdminUser],
         'add': [IsAuthenticated],
-        'analytics': [IsAdminUser]
+        'analytics': [IsAdminUser],
+        'my_own': [IsAuthenticated]
     }
     pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -78,7 +81,7 @@ class WatchVisitRecordViewSet(
                 response={
                     'type': 'object',
                     'properties': {
-                        'error': {
+                        'detail': {
                             'type': 'string',
                             'example': 'Authentication credentials were not provided.'
                         }
@@ -90,7 +93,7 @@ class WatchVisitRecordViewSet(
                 response={
                     'type': 'object',
                     'properties': {
-                        'error': {
+                        'detail': {
                             'type': 'string',
                             'example': 'You do not have permission to perform this action.'
                         }
@@ -115,7 +118,7 @@ class WatchVisitRecordViewSet(
                 response={
                     'type': 'object',
                     'properties': {
-                        'error': {
+                        'detail': {
                             'type': 'string',
                             'example': 'Authentication credentials were not provided.'
                         }
@@ -127,7 +130,7 @@ class WatchVisitRecordViewSet(
                 response={
                     'type': 'object',
                     'properties': {
-                        'error': {
+                        'detail': {
                             'type': 'string',
                             'example': 'You do not have permission to perform this action.'
                         }
@@ -152,7 +155,7 @@ class WatchVisitRecordViewSet(
                 response={
                     'type': 'object',
                     'properties': {
-                        'error': {
+                        'detail': {
                             'type': 'string',
                             'example': 'Authentication credentials were not provided.'
                         }
@@ -164,7 +167,7 @@ class WatchVisitRecordViewSet(
                 response={
                     'type': 'object',
                     'properties': {
-                        'error': {
+                        'detail': {
                             'type': 'string',
                             'example': 'You do not have permission to perform this action.'
                         }
@@ -202,7 +205,7 @@ class WatchVisitRecordViewSet(
                 response={
                     'type': 'object',
                     'properties': {
-                        'error': {
+                        'detail': {
                             'type': 'string',
                             'example': 'Authentication credentials were not provided.'
                         }
@@ -233,7 +236,7 @@ class WatchVisitRecordViewSet(
                 response={
                     'type': 'object',
                     'properties': {
-                        'error': {
+                        'detail': {
                             'type': 'string',
                             'example': 'Authentication credentials were not provided.'
                         }
@@ -320,7 +323,7 @@ class WatchVisitRecordViewSet(
                 response={
                     'type': 'object',
                     'properties': {
-                        'error': {
+                        'detail': {
                             'type': 'string',
                             'example': 'Authentication credentials were not provided.'
                         }
@@ -332,7 +335,7 @@ class WatchVisitRecordViewSet(
                 response={
                     'type': 'object',
                     'properties': {
-                        'error': {
+                        'detail': {
                             'type': 'string',
                             'example': 'You do not have permission to perform this action.'
                         }
