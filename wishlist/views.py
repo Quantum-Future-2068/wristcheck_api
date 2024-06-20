@@ -39,8 +39,8 @@ class WishlistViewSet(
     }
     pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['watch_id', 'user__username']
-    search_fields = ['watch_id', 'user__username']
+    filterset_fields = ['watch_id', 'user_id']
+    search_fields = ['watch_id', 'user__name']
     ordering_fields = USUAL_ORDERING_FIELDS
     ordering = USUAL_ORDERING
 
