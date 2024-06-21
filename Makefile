@@ -20,6 +20,9 @@ migrate: install
 collectstatic:
 	${VIRTUALENVS} && python manage.py collectstatic
 
+pytest:
+	${VIRTUALENVS} && pytest
+
 run_local: migrate
 	${VIRTUALENVS} && python manage.py runserver 127.0.0.1:$(PORT)
 
@@ -30,10 +33,16 @@ run_gunicorn_only:
 	${VIRTUALENVS} && gunicorn --workers ${WORKERS} --bind $(HOST):$(PORT) ${PROJECT_NAME}.wsgi --daemon
 
 process:
-	ps -ef | grep $(PORT) | grep -v grep 	
+	ps aux | grep gunicorn | grep -v grep
 
-stop: process
-	ps -ef | grep $(PORT) | grep -v grep | awk '{print $$2}'| xargs kill
+stop_gunicorn:
+	pkill -f gunicorn
+
+restart_gunicorn:
+	pkill -HUP -f gunicorn
+
+black:
+	${VIRTUALENVS} && black $$(git ls-files '*.py')
 
 # local, if exists
 

@@ -3,8 +3,14 @@ from aliyunsdkcore.auth.credentials import AccessKeyCredential
 from aliyunsdksts.request.v20150401 import AssumeRoleRequest
 import json
 
-from wristcheck_api.settings import ALI_ACCESS_KEY_ID, ALI_ACCESS_KEY_SECRET, ALI_ROLE_ARN, ALI_ROLE_SESSION_NAME, \
-    ALI_REGION, ALI_STS_DURATION_SECONDS
+from wristcheck_api.settings import (
+    ALI_ACCESS_KEY_ID,
+    ALI_ACCESS_KEY_SECRET,
+    ALI_ROLE_ARN,
+    ALI_ROLE_SESSION_NAME,
+    ALI_REGION,
+    ALI_STS_DURATION_SECONDS,
+)
 
 
 def get_sts_token():

@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('account', '0001_initial'),
+        ("account", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='social',
-            name='avatar_url',
+            model_name="social",
+            name="avatar_url",
             field=models.URLField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='social',
-            name='nickname',
+            model_name="social",
+            name="nickname",
             field=models.CharField(blank=True, max_length=100, null=True),
         ),
     ]

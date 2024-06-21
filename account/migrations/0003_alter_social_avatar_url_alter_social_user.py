@@ -6,21 +6,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('account', '0002_alter_social_avatar_url_alter_social_nickname'),
+        ("account", "0002_alter_social_avatar_url_alter_social_nickname"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='social',
-            name='avatar_url',
+            model_name="social",
+            name="avatar_url",
             field=models.CharField(blank=True, max_length=255, null=True),
         ),
         migrations.AlterField(
-            model_name='social',
-            name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='social_accounts', to=settings.AUTH_USER_MODEL),
+            model_name="social",
+            name="user",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="social_accounts",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

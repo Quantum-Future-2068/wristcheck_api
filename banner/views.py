@@ -16,41 +16,43 @@ from django.utils import timezone
 from .serializer import BannerSerializer
 
 
-class BannerViewSet(CustomGetPermissionMixin, CustomCreateModelMixin, viewsets.ModelViewSet):
+class BannerViewSet(
+    CustomGetPermissionMixin, CustomCreateModelMixin, viewsets.ModelViewSet
+):
     queryset = Banner.objects.all()
     serializer_class = BannerSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['is_enabled', 'user_id', 'headline', 'subtitle']
-    search_fields = ['headline', 'subtitle']
+    filterset_fields = ["is_enabled", "user_id", "headline", "subtitle"]
+    search_fields = ["headline", "subtitle"]
     ordering_fields = USUAL_ORDERING_FIELDS
     ordering = USUAL_ORDERING
     pagination_class = CustomPagination
 
     permission_classes_map = {
-        'list': [IsAdminUser],
-        'retrieve': [IsAdminUser],
-        'create': [IsAdminUser],
-        'update': [IsAdminUser],
-        'destroy': [IsAdminUser],
-        'active_banners': [AllowAny],
-        'sts_token': [IsAdminUser],
-        'soft_destroy': [IsAdminUser],
+        "list": [IsAdminUser],
+        "retrieve": [IsAdminUser],
+        "create": [IsAdminUser],
+        "update": [IsAdminUser],
+        "destroy": [IsAdminUser],
+        "active_banners": [AllowAny],
+        "sts_token": [IsAdminUser],
+        "soft_destroy": [IsAdminUser],
     }
 
-    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
+    @action(detail=False, methods=["get"], permission_classes=[AllowAny])
     def active_banners(self, request):
         """获取有效的轮播图或视频"""
         self.queryset = Banner.objects.get_active_banners()
         return self.list(request)
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=["get"])
     def sts_token(self, request):
         """服务端生成STS临时访问凭证"""
         return Response(get_sts_token(), status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def soft_destroy(self, request, *args, **kwargs):
         """软删除"""
-        partial = kwargs.pop('partial', True)
+        partial = kwargs.pop("partial", True)
         request.data = dict(deleted_at=timezone.now())
         return self.update(request, *args, **kwargs, partial=partial)

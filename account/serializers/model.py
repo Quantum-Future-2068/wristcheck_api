@@ -7,7 +7,7 @@ from account.models import Social
 class SocialSerializer(serializers.ModelSerializer):
     class Meta:
         model = Social
-        fields = '__all__'
+        fields = "__all__"
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -15,4 +15,4 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        exclude = ['password']
+        exclude = ["password"]

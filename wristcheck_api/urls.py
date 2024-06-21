@@ -13,11 +13,16 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularSwaggerView,
+    SpectacularRedocView,
+)
 from rest_framework.routers import DefaultRouter
 
 from account.views import UserViewSet
@@ -26,18 +31,22 @@ from wishlist.views import WishlistViewSet
 
 urlpatterns = [
     # path('', lambda request: HttpResponse("Welcome to the Homepage!"), name='home'),
-    path('admin/', admin.site.urls),
-    path('drf-admin/', include('rest_framework.urls', namespace='rest_framework')),
-    path('doc/schema', SpectacularAPIView.as_view(), name='schema'),
-    path('doc/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    path('doc/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    path("admin/", admin.site.urls),
+    path("drf-admin/", include("rest_framework.urls", namespace="rest_framework")),
+    path("doc/schema", SpectacularAPIView.as_view(), name="schema"),
+    path(
+        "doc/swagger/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
+    ),
+    path("doc/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
 ]
 
 router = DefaultRouter()
-router.register(r'user', UserViewSet)
-router.register(r'wishlist', WishlistViewSet)
+router.register(r"user", UserViewSet)
+router.register(r"wishlist", WishlistViewSet)
 # router.register(r'banner', BannerViewSet)
-router.register(r'track/watch-visit', WatchVisitRecordViewSet)
+router.register(r"track/watch-visit", WatchVisitRecordViewSet)
 urlpatterns.extend(router.urls)
 
 if settings.DEBUG:

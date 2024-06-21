@@ -41,6 +41,7 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 ### 1.创建虚拟环境
 
 ```shell
+pip3 install virtualenv
 virtualenv -p python3.12 .venv
 ```
 

@@ -7,4 +7,4 @@ from track.models import WatchVisitRecord
 class WatchVisitRecordSerializer(serializers.ModelSerializer):
     class Meta:
         model = WatchVisitRecord
-        fields = '__all__'
+        fields = "__all__"

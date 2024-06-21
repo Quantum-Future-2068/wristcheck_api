@@ -1,6 +1,10 @@
 from rest_framework.pagination import PageNumberPagination
 
-from wristcheck_api.constants import DEFAULT_PAGE_SIZE, DEFAULT_MAX_PAGE_SIZE, DEFAULT_PAGE_SIZE_QUERY_PARAM
+from wristcheck_api.constants import (
+    DEFAULT_PAGE_SIZE,
+    DEFAULT_MAX_PAGE_SIZE,
+    DEFAULT_PAGE_SIZE_QUERY_PARAM,
+)
 
 
 class CustomPagination(PageNumberPagination):

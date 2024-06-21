@@ -2,94 +2,96 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter
 
 from track.serializers.model import WatchVisitRecordSerializer
-from track.serializers.serializers import WatchVisitRecordAddRequestSerializer, \
-    WatchVisitRecordAddValidateErrorSerializer
+from track.serializers.serializers import (
+    WatchVisitRecordAddRequestSerializer,
+    WatchVisitRecordAddValidateErrorSerializer,
+)
 from utils.schemas import response_schema
 from utils.serializers import ErrorResponseSerializer
 from wristcheck_api.constants import DEFAULT_PAGE_SIZE, DEFAULT_MAX_PAGE_SIZE
 
-tags = ['track']
+tags = ["track"]
 
 list_schema_info = dict(
     tags=tags,
-    summary='track_watch_visit_list',
-    description='**PERMISSION**: Allows access only to admin users.',
+    summary="track_watch_visit_list",
+    description="**PERMISSION**: Allows access only to admin users.",
     parameters=[
         OpenApiParameter(
-            name='ordering',
+            name="ordering",
             type=OpenApiTypes.STR,
-            description='Which field to use when ordering the results. default: -created_at',
-            enum=['created_at'],
-            required=False
+            description="Which field to use when ordering the results. default: -created_at",
+            enum=["created_at"],
+            required=False,
         ),
         OpenApiParameter(
-            name='page_size',
+            name="page_size",
             type=OpenApiTypes.INT,
-            description=f'Number of results to return per page. Maximum value is {DEFAULT_MAX_PAGE_SIZE}.',
+            description=f"Number of results to return per page. Maximum value is {DEFAULT_MAX_PAGE_SIZE}.",
             required=False,
             default=DEFAULT_PAGE_SIZE,
         ),
         OpenApiParameter(
-            name='search',
+            name="search",
             type=OpenApiTypes.STR,
-            description=f'Filter results by **watch_id** or **user_id**. ',
+            description=f"Filter results by **watch_id** or **user_id**. ",
             required=False,
-        )
+        ),
     ],
     responses={
         200: response_schema(200, WatchVisitRecordSerializer, many=True),
         401: response_schema(401, ErrorResponseSerializer),
         403: response_schema(403, ErrorResponseSerializer),
-    }
+    },
 )
 
 retrieve_schema_info = dict(
     tags=tags,
-    summary='track_watch_visit_retrieve',
-    description='**PERMISSION**: Allows access only to owner or admin users.',
+    summary="track_watch_visit_retrieve",
+    description="**PERMISSION**: Allows access only to owner or admin users.",
     responses={
         200: response_schema(200, WatchVisitRecordSerializer, many=False),
         401: response_schema(401, ErrorResponseSerializer),
         403: response_schema(403, ErrorResponseSerializer),
-    }
+    },
 )
 
 destroy_schema_info = dict(
     tags=tags,
-    summary='track_watch_visit_destroy',
-    description='**PERMISSION**: Allows access only to owner or admin users.',
+    summary="track_watch_visit_destroy",
+    description="**PERMISSION**: Allows access only to owner or admin users.",
     responses={
         204: response_schema(204, WatchVisitRecordSerializer, many=False),
         401: response_schema(401, ErrorResponseSerializer),
         403: response_schema(403, ErrorResponseSerializer),
-    }
+    },
 )
 
 add_schema_info = dict(
     tags=tags,
-    summary='track_watch_visit_add',
-    description='**PERMISSION**: Allows access only to authenticated users.',
+    summary="track_watch_visit_add",
+    description="**PERMISSION**: Allows access only to authenticated users.",
     request=WatchVisitRecordAddRequestSerializer,
     responses={
         201: response_schema(201, WatchVisitRecordSerializer, many=False),
         400: response_schema(400, WatchVisitRecordAddValidateErrorSerializer),
         401: response_schema(401, ErrorResponseSerializer),
-    }
+    },
 )
 
 my_own_schema_info = dict(
     tags=tags,
-    summary='track_watch_visit_my_own',
-    description='**PERMISSION**: Allows access only to authenticated users.',
+    summary="track_watch_visit_my_own",
+    description="**PERMISSION**: Allows access only to authenticated users.",
     responses={
         200: response_schema(200, WatchVisitRecordSerializer, many=True),
         401: response_schema(401, ErrorResponseSerializer),
-    }
+    },
 )
 
 analytics_schema_info = dict(
     tags=tags,
-    summary='track_watch_visit_analytics',
+    summary="track_watch_visit_analytics",
     description="""
 **PERMISSION**: Allows access only to authenticated users.
 
@@ -98,23 +100,23 @@ Obtain the distribution of the number of times a user visits watch over a period
 eg: GET /watch-visit/analytics/?user_id=1&period=month&page=1&page_size=2""",
     parameters=[
         OpenApiParameter(
-            name='user_id',
+            name="user_id",
             type=OpenApiTypes.STR,
-            description='Which field to filter by.',
-            required=False
+            description="Which field to filter by.",
+            required=False,
         ),
         OpenApiParameter(
-            name='period',
+            name="period",
             type=OpenApiTypes.STR,
-            description=f'Which field to filter by',
+            description=f"Which field to filter by",
             required=False,
-            enum=['day', 'week', 'month', 'quarter', 'year'],
-            default='month',
+            enum=["day", "week", "month", "quarter", "year"],
+            default="month",
         ),
     ],
     responses={
         200: response_schema(200, WatchVisitRecordSerializer, many=False),
         401: response_schema(401, ErrorResponseSerializer),
         403: response_schema(403, ErrorResponseSerializer),
-    }
+    },
 )

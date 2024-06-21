@@ -11,6 +11,6 @@ class CustomCreateModelMixin:
 
     def get_success_headers(self, data):
         try:
-            return {'Location': str(data[api_settings.URL_FIELD_NAME])}
+            return {"Location": str(data[api_settings.URL_FIELD_NAME])}
         except (TypeError, KeyError):
             return {}

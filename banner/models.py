@@ -8,13 +8,11 @@ from django.utils import timezone
 class BannerManager(models.Manager):
     def get_active_banners(self):
         now = timezone.now()
-        return self.filter(
-            is_enabled=True,
-            deleted_at__isnull=True,
-            start_date__lte=now
-        ).filter(
-            Q(end_date__gte=now) | Q(end_date__isnull=True)
-        ).order_by('order')
+        return (
+            self.filter(is_enabled=True, deleted_at__isnull=True, start_date__lte=now)
+            .filter(Q(end_date__gte=now) | Q(end_date__isnull=True))
+            .order_by("order")
+        )
 
 
 class Banner(models.Model):
@@ -36,9 +34,9 @@ class Banner(models.Model):
     def is_active(self):
         now = timezone.now()
         return (
-                self.is_enabled and
-                self.deleted_at is None and
-                self.start_date <= now <= (self.end_date if self.end_date else now)
+            self.is_enabled
+            and self.deleted_at is None
+            and self.start_date <= now <= (self.end_date if self.end_date else now)
         )
 
     def __str__(self):
