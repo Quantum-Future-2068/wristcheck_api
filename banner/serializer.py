@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-from account.serializer import UserSerializer
 from .models import Banner
 
 

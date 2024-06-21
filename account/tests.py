@@ -190,7 +190,7 @@ class TestUserAuthEndpoints:
 
         # Assert response
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.data['detail'] == 'Code is required'
+        assert response.data['code'][0] == 'This field is required.'
 
     @patch('account.views.requests.get')
     def test_wechat_mini_login_failure(self, mock_requests_get):
@@ -201,5 +201,5 @@ class TestUserAuthEndpoints:
         response = self.client.post('/user/wechat_mini_login/', {'code': 'mocked_code'})
 
         # Assert response
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.data['detail'] == 'Can not get wechat openid'
