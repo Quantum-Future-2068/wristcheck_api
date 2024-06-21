@@ -1,17 +1,23 @@
 .PHONY: run
 SHELL = /bin/bash
 
+ifneq (,$(wildcard .env))
+    include .env
+    export
+endif
+
 PORT ?= 8000
 PROJECT_NAME ?= wristcheck_api
 APP_NAME ?= account
 VIRTUALENVS ?= source .venv/bin/activate
 WORKERS = 4
 HOST = 0.0.0.0
+PID_FILE=gunicorn.pid
 
-pull:
-	git pull 
+create_venv:
+	virtualenv -p python3 .venv
 
-install: pull 
+install: create_venv
 	${VIRTUALENVS} && pip install -r requirements.txt
 
 migrate: install
@@ -20,32 +26,29 @@ migrate: install
 collectstatic:
 	${VIRTUALENVS} && python manage.py collectstatic
 
-pytest:
+config_env:
+	cp env_template .env
+
+pytest: config_env
 	${VIRTUALENVS} && pytest
 
 run_local: migrate
 	${VIRTUALENVS} && python manage.py runserver 127.0.0.1:$(PORT)
 
-run_gunicorn: migrate
-	${VIRTUALENVS} && gunicorn --workers ${WORKERS} --bind $(HOST):$(PORT) ${PROJECT_NAME}.wsgi --daemon
-
-run_gunicorn_only:
-	${VIRTUALENVS} && gunicorn --workers ${WORKERS} --bind $(HOST):$(PORT) ${PROJECT_NAME}.wsgi --daemon
+start_gunicorn: migrate
+	${VIRTUALENVS} && gunicorn --workers ${WORKERS} --bind $(HOST):$(PORT) ${PROJECT_NAME}.wsgi --pid $(PID_FILE) --daemon
 
 process:
-	ps aux | grep gunicorn | grep -v grep
+	ps aux | grep gunicorn
 
 stop_gunicorn:
 	pkill -f gunicorn
 
-restart_gunicorn:
-	pkill -HUP -f gunicorn
-
 black:
-	${VIRTUALENVS} && black $$(git ls-files '*.py')
+	${VIRTUALENVS} && black .
 
 black_check:
-	${VIRTUALENVS} && black --check $$(git ls-files '*.py')
+	${VIRTUALENVS} && black --check .
 
 # local, if exists
 

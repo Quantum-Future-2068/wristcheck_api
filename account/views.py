@@ -1,5 +1,6 @@
+import os
+
 import requests
-from decouple import config
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django_filters.rest_framework import DjangoFilterBackend
@@ -90,10 +91,10 @@ class UserViewSet(CustomGetPermissionMixin, viewsets.ReadOnlyModelViewSet):
         serializer.is_valid(raise_exception=True)
         code = serializer.validated_data["code"]
         wechat_data = requests.get(
-            config("WECHAT_MINI_GET_SESSION_KEY_URL"),
+            os.getenv("WECHAT_MINI_GET_SESSION_KEY_URL"),
             {
-                "appid": config("WECHAT_MINI_APPID"),
-                "secret": config("WECHAT_MINI_SECRET"),
+                "appid": os.getenv("WECHAT_MINI_APPID"),
+                "secret": os.getenv("WECHAT_MINI_SECRET"),
                 "js_code": code,
                 "grant_type": "authorization_code",
             },

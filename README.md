@@ -14,7 +14,7 @@
 
 ## 2.Environment management
 
-使用[python-decouple](https://github.com/HBNetwork/python-decouple)
+使用[python-dotenv](https://github.com/theskumar/python-dotenv)
 
 项目的根目录有一个名为`env_template`的文件, 项目默认从项目根目录的`.env`文件获取变量. 
 所以, 我们拷贝一份
@@ -32,8 +32,10 @@ DEBUG=True
 在项目代码中使用变量
 
 ```python
-from decouple import config
-DEBUG = config('DEBUG', default=True, cast=bool)
+import os
+from dotenv import load_dotenv
+load_dotenv(override=True)
+DEBUG = bool(os.getenv("DEBUG"))
 ```
 
 ## 3.Quickstart
@@ -42,7 +44,7 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 ```shell
 pip3 install virtualenv
-virtualenv -p python3.12 .venv
+virtualenv -p python3 .venv
 ```
 
 ### 2.进入虚拟环境
