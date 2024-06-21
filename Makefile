@@ -44,6 +44,9 @@ restart_gunicorn:
 black:
 	${VIRTUALENVS} && black $$(git ls-files '*.py')
 
+black_check:
+	${VIRTUALENVS} && black --check $$(git ls-files '*.py')
+
 # local, if exists
 
 -include Makefile.local
