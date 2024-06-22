@@ -61,14 +61,4 @@ jobs:
               git reset --hard origin/main
             fi
             
-            cd ${{ vars.ECS_PATH }}
-            make config_env
-            if [ -f "gunicorn.pid" ]; then
-              make migrate
-              cd ${{ vars.ECS_PATH }}
-              kill -HUP `cat "gunicorn.pid"`
-              echo "[DEBUG]reload gunicorn..."
-            else
-              cd ${{ vars.ECS_PATH }}
-              make start_gunicorn
-            fi
+            supervisorctl restart wristcheck
