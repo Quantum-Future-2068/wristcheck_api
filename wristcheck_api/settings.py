@@ -179,10 +179,20 @@ LOGGING = {
             "level": "DEBUG",
             "class": "logging.StreamHandler",
         },
+        "file": {
+            "level": "DEBUG",
+            "class": "logging.FileHandler",
+            "filename": "wristcheck.log",
+        },
     },
     "loggers": {
         "django.db.backends": {
             "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": True,
+        },
+        "gunicorn.errors": {
+            "handlers": ["file"],
             "level": "WARNING",
             "propagate": True,
         },

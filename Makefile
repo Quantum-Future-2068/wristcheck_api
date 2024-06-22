@@ -36,7 +36,10 @@ run_local: migrate
 	${VIRTUALENVS} && python manage.py runserver 127.0.0.1:$(PORT)
 
 start_gunicorn:
-	${VIRTUALENVS} && gunicorn --workers ${WORKERS} --bind $(HOST):$(PORT) ${PROJECT_NAME}.wsgi --pid $(PID_FILE)
+	${VIRTUALENVS} && gunicorn -c gunicorn_config.py
+
+reload_gunicorn:
+	kill -HUP `cat ./gunicorn.pid`
 
 process:
 	ps aux | grep gunicorn
