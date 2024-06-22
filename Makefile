@@ -35,8 +35,8 @@ pytest: config_env
 run_local: migrate
 	${VIRTUALENVS} && python manage.py runserver 127.0.0.1:$(PORT)
 
-start_gunicorn: migrate
-	${VIRTUALENVS} && gunicorn --workers ${WORKERS} --bind $(HOST):$(PORT) ${PROJECT_NAME}.wsgi --pid $(PID_FILE) --daemon
+start_gunicorn:
+	${VIRTUALENVS} && gunicorn --workers ${WORKERS} --bind $(HOST):$(PORT) ${PROJECT_NAME}.wsgi --pid $(PID_FILE)
 
 process:
 	ps aux | grep gunicorn

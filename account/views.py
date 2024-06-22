@@ -33,6 +33,7 @@ from account.serializers.serializers import (
 from account.serializers.model import UserSerializer
 from utils.pagination import CustomPagination
 from utils.permission import CustomGetPermissionMixin, IsOwnerOrAdminUser
+from wristcheck_api.settings import env
 
 
 class UserViewSet(CustomGetPermissionMixin, viewsets.ReadOnlyModelViewSet):
@@ -91,10 +92,10 @@ class UserViewSet(CustomGetPermissionMixin, viewsets.ReadOnlyModelViewSet):
         serializer.is_valid(raise_exception=True)
         code = serializer.validated_data["code"]
         wechat_data = requests.get(
-            os.getenv("WECHAT_MINI_GET_SESSION_KEY_URL"),
+            env.str("WECHAT_MINI_GET_SESSION_KEY_URL", ""),
             {
-                "appid": os.getenv("WECHAT_MINI_APPID"),
-                "secret": os.getenv("WECHAT_MINI_SECRET"),
+                "appid": env.str("WECHAT_MINI_APPID", ""),
+                "secret": env.str("WECHAT_MINI_SECRET", ""),
                 "js_code": code,
                 "grant_type": "authorization_code",
             },
