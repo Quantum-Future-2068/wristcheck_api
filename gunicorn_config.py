@@ -18,3 +18,5 @@ pidfile = env.str("GUNICORN_PID_FILE", "./gunicorn.pid")
 loglevel = env.str("GUNICORN_LOG_LEVEL", "debug")
 accesslog = env.str("GUNICORN_ACCESS_LOG", "./access.log")
 errorlog = env.str("GUNICORN_ERROR_LOG", "./error.log")
+certfile = "/etc/letsencrypt/live/wristcheck.imdancer.com/fullchain.pem"
+keyfile = "/etc/letsencrypt/live/wristcheck.imdancer.com/privkey.pem"

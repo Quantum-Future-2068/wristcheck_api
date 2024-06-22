@@ -34,13 +34,13 @@ class TestUserListView:
         # Authenticate as admin user
         self.client.login(username=self.admin_user.username, password="password")
 
-        response = self.client.get("/user/")
+        response = self.client.get("/user/", secure=True)
 
         assert response.status_code == status.HTTP_200_OK
         assert "results" in response.data
 
     def test_user_list_unauthenticated(self):
-        response = self.client.get("/user/")
+        response = self.client.get("/user/", secure=True)
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert (
@@ -51,7 +51,7 @@ class TestUserListView:
         # Authenticate as normal user
         self.client.login(username=self.normal_user.username, password="password")
 
-        response = self.client.get("/user/")
+        response = self.client.get("/user/", secure=True)
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert (
@@ -63,7 +63,7 @@ class TestUserListView:
         # Authenticate as admin user
         self.client.login(username=self.admin_user.username, password="password")
 
-        response = self.client.get("/user/", {"ordering": "date_joined"})
+        response = self.client.get("/user/", {"ordering": "date_joined"}, secure=True)
 
         assert response.status_code == status.HTTP_200_OK
         assert "results" in response.data
@@ -80,7 +80,7 @@ class TestUserListView:
         # Authenticate as admin user
         self.client.login(username=self.admin_user.username, password="password")
 
-        response = self.client.get("/user/", {"page_size": 1})
+        response = self.client.get("/user/", {"page_size": 1}, secure=True)
 
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["results"]) == 1
@@ -89,7 +89,9 @@ class TestUserListView:
         # Authenticate as admin user
         self.client.login(username=self.admin_user.username, password="password")
 
-        response = self.client.get("/user/", {"search": self.normal_user.username})
+        response = self.client.get(
+            "/user/", {"search": self.normal_user.username}, secure=True
+        )
 
         assert response.status_code == status.HTTP_200_OK
         assert any(
@@ -102,7 +104,7 @@ class TestUserListView:
         self.client.login(username=self.admin_user.username, password="password")
 
         # Make profile request
-        response = self.client.get("/user/profile/")
+        response = self.client.get("/user/profile/", secure=True)
 
         # Assert response
         assert response.status_code == status.HTTP_200_OK
@@ -112,7 +114,7 @@ class TestUserListView:
 
     def test_user_profile_unauthenticated(self):
         # Make profile request without authentication
-        response = self.client.get("/user/profile/")
+        response = self.client.get("/user/profile/", secure=True)
 
         # Assert response
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -125,7 +127,7 @@ class TestUserListView:
         self.client.force_login(self.admin_user)
 
         # Make retrieve request for own user id
-        response = self.client.get(f"/user/{self.admin_user.id}/")
+        response = self.client.get(f"/user/{self.admin_user.id}/", secure=True)
 
         # Assert response
         assert response.status_code == status.HTTP_200_OK
@@ -141,7 +143,7 @@ class TestUserListView:
         self.client.force_login(admin_user)
 
         # Make retrieve request for another user id (in this case, self.user)
-        response = self.client.get(f"/user/{self.admin_user.id}/")
+        response = self.client.get(f"/user/{self.admin_user.id}/", secure=True)
 
         # Assert response
         assert response.status_code == status.HTTP_200_OK
@@ -151,7 +153,7 @@ class TestUserListView:
 
     def test_retrieve_unauthenticated(self):
         # Make retrieve request without authentication
-        response = self.client.get(f"/user/{self.admin_user.id}/")
+        response = self.client.get(f"/user/{self.admin_user.id}/", secure=True)
 
         # Assert response
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -174,7 +176,7 @@ class TestUserAuthEndpoints:
 
         # Make login request
         response = self.client.post(
-            "/user/login/", {"username": username, "password": password}
+            "/user/login/", {"username": username, "password": password}, secure=True
         )
 
         # Assert response
@@ -184,7 +186,9 @@ class TestUserAuthEndpoints:
     def test_user_login_invalid_credentials(self):
         # Make login request with invalid credentials
         response = self.client.post(
-            "/user/login/", {"username": "invalid_user", "password": "invalid_password"}
+            "/user/login/",
+            {"username": "invalid_user", "password": "invalid_password"},
+            secure=True,
         )
 
         # Assert response
@@ -201,7 +205,9 @@ class TestUserAuthEndpoints:
         }
 
         # Make wechat_mini_login request
-        response = self.client.post("/user/wechat_mini_login/", {"code": "mocked_code"})
+        response = self.client.post(
+            "/user/wechat_mini_login/", {"code": "mocked_code"}, secure=True
+        )
 
         # Assert response
         assert response.status_code == status.HTTP_200_OK
@@ -209,7 +215,7 @@ class TestUserAuthEndpoints:
 
     def test_wechat_mini_login_missing_code(self):
         # Make wechat_mini_login request without code
-        response = self.client.post("/user/wechat_mini_login/", {})
+        response = self.client.post("/user/wechat_mini_login/", {}, secure=True)
 
         # Assert response
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -221,7 +227,9 @@ class TestUserAuthEndpoints:
         mock_requests_get.return_value.json.return_value = {}
 
         # Make wechat_mini_login request
-        response = self.client.post("/user/wechat_mini_login/", {"code": "mocked_code"})
+        response = self.client.post(
+            "/user/wechat_mini_login/", {"code": "mocked_code"}, secure=True
+        )
 
         # Assert response
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR

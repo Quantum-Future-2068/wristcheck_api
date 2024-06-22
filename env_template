@@ -1,8 +1,9 @@
+ENVIRONMENT=prod
 PORT=80
 WECHAT_MINI_GET_SESSION_KEY_URL=https://api.weixin.qq.com/sns/jscode2session
 WECHAT_MINI_APPID=appid
 WECHAT_MINI_SECRET=app_secret
 DEBUG=False
 # DATABASE_URL=mysql://myuser:mypassword@myhost/mydatabase
-ALLOWED_HOSTS=wristcheck.imdancer.com,114.55.108.152,127.0.0.1,localhost,1a83-2408-824e-1514-9830-189d-8641-287f-5df2.ngrok-free.app
+ALLOWED_HOSTS=wristcheck.imdancer.com,imdancer.com,114.55.108.152,127.0.0.1,localhost,1a83-2408-824e-1514-9830-189d-8641-287f-5df2.ngrok-free.app
 CSRF_TRUSTED_ORIGINS=https://1a83-2408-824e-1514-9830-189d-8641-287f-5df2.ngrok-free.app

@@ -42,7 +42,7 @@ class TestWatchVisitRecordViewSet:
 
     def test_list_endpoint_successful(self):
         self.client.login(username=self.admin_user.username, password="password")
-        response = self.client.get(self.list_url)
+        response = self.client.get(self.list_url, secure=True)
         assert response.status_code == status.HTTP_200_OK
 
     def test_retrieve_endpoint_successful(self):
@@ -50,7 +50,7 @@ class TestWatchVisitRecordViewSet:
         detail_url = reverse(
             "watchvisitrecord-detail", kwargs={"pk": self.normal_user_watch.id}
         )
-        response = self.client.get(detail_url)
+        response = self.client.get(detail_url, secure=True)
         assert response.status_code == status.HTTP_200_OK
 
     def test_destroy_endpoint_successful(self):
@@ -58,32 +58,32 @@ class TestWatchVisitRecordViewSet:
         detail_url = reverse(
             "watchvisitrecord-detail", kwargs={"pk": self.normal_user_watch.id}
         )
-        response = self.client.delete(detail_url)
+        response = self.client.delete(detail_url, secure=True)
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
     def test_add_endpoint_successful(self):
         self.client.login(username=self.admin_user.username, password="password")
         data = {"watch_id": "123"}
         response = self.client.post(
-            reverse("watchvisitrecord-add"), data, format="json"
+            reverse("watchvisitrecord-add"), data, format="json", secure=True
         )
         assert response.status_code == status.HTTP_201_CREATED
 
     def test_my_own_endpoint_successful(self):
         self.client.login(username=self.normal_user.username, password="password")
-        response = self.client.get(reverse("watchvisitrecord-my-own"))
+        response = self.client.get(reverse("watchvisitrecord-my-own"), secure=True)
         assert response.status_code == status.HTTP_200_OK
 
     def test_analytics_endpoint_successful(self):
         self.client.login(username=self.admin_user.username, password="password")
         response = self.client.get(
-            reverse("watchvisitrecord-analytics"), {"period": "month"}
+            reverse("watchvisitrecord-analytics"), {"period": "month"}, secure=True
         )
         assert response.status_code == status.HTTP_200_OK
 
     def test_list_endpoint_forbidden(self):
         self.client.login(username=self.normal_user.username, password="password")
-        response = self.client.get(self.list_url)
+        response = self.client.get(self.list_url, secure=True)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_retrieve_endpoint_forbidden(self):
@@ -91,7 +91,7 @@ class TestWatchVisitRecordViewSet:
         detail_url = reverse(
             "watchvisitrecord-detail", kwargs={"pk": self.admin_user_watch.id}
         )
-        response = self.client.get(detail_url)
+        response = self.client.get(detail_url, secure=True)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_destroy_endpoint_forbidden(self):
@@ -99,47 +99,47 @@ class TestWatchVisitRecordViewSet:
         detail_url = reverse(
             "watchvisitrecord-detail", kwargs={"pk": self.admin_user_watch.id}
         )
-        response = self.client.delete(detail_url)
+        response = self.client.delete(detail_url, secure=True)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_analytics_endpoint_forbidden(self):
         self.client.login(username=self.normal_user.username, password="password")
         response = self.client.get(
-            reverse("watchvisitrecord-analytics"), {"period": "month"}
+            reverse("watchvisitrecord-analytics"), {"period": "month"}, secure=True
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_list_endpoint_unauthenticated(self):
-        response = self.client.get(self.list_url)
+        response = self.client.get(self.list_url, secure=True)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_retrieve_endpoint_unauthenticated(self):
         detail_url = reverse(
             "watchvisitrecord-detail", kwargs={"pk": self.admin_user_watch.id}
         )
-        response = self.client.get(detail_url)
+        response = self.client.get(detail_url, secure=True)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_destroy_endpoint_unauthenticated(self):
         detail_url = reverse(
             "watchvisitrecord-detail", kwargs={"pk": self.admin_user_watch.id}
         )
-        response = self.client.delete(detail_url)
+        response = self.client.delete(detail_url, secure=True)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_add_endpoint_unauthenticated(self):
         data = {"watch_id": "123"}
         response = self.client.post(
-            reverse("watchvisitrecord-add"), data, format="json"
+            reverse("watchvisitrecord-add"), data, format="json", secure=True
         )
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_my_own_endpoint_unauthenticated(self):
-        response = self.client.get(reverse("watchvisitrecord-my-own"))
+        response = self.client.get(reverse("watchvisitrecord-my-own"), secure=True)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_analytics_endpoint_unauthenticated(self):
         response = self.client.get(
-            reverse("watchvisitrecord-analytics"), {"period": "month"}
+            reverse("watchvisitrecord-analytics"), {"period": "month"}, secure=True
         )
         assert response.status_code == status.HTTP_401_UNAUTHORIZED

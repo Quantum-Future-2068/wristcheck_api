@@ -207,3 +207,9 @@ ALI_ROLE_ARN = "acs:ram::1234567890123456:role/your-role-name"
 ALI_ROLE_SESSION_NAME = "your-role-session-name"
 ALI_REGION = "cn-hangzhou"
 ALI_STS_DURATION_SECONDS = 3600
+
+# HTTPS
+if env.str("ENVIRONMENT") != "local":
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
