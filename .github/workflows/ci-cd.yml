@@ -63,4 +63,5 @@ jobs:
             
             make config_env
             make migrate
+            make collectstatic
             supervisorctl restart wristcheck

@@ -24,7 +24,7 @@ migrate: install
 	${VIRTUALENVS} && python manage.py makemigrations && python manage.py migrate
 
 collectstatic:
-	${VIRTUALENVS} && python manage.py collectstatic
+	${VIRTUALENVS} && python manage.py collectstatic --noinput
 
 config_env:
 	cp env_template .env
