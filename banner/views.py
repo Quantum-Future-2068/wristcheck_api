@@ -7,7 +7,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from utils.mixins import CustomCreateModelMixin
 from utils.pagination import CustomPagination
-from services.aliyun_sts import get_sts_token
+from utils.third_service.aliyun_sts import get_sts_token
 from wristcheck_api.constants import USUAL_ORDERING_FIELDS, USUAL_ORDERING
 from utils.permission import CustomGetPermissionMixin
 from .models import Banner

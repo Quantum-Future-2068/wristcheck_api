@@ -18,7 +18,7 @@ from dj_database_url import parse as db_url
 from environs import Env
 
 env = Env()
-env.read_env(override=True)
+env.read_env(override=False)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -183,7 +183,7 @@ LOGGING = {
         "file": {
             "level": "DEBUG",
             "class": "logging.FileHandler",
-            "filename": "wristcheck.log",
+            "filename": env.str("DJANGO_PROJECT_LOG", "/var/log/wristcheck.log"),
         },
     },
     "loggers": {

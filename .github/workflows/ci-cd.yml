@@ -61,7 +61,13 @@ jobs:
               git reset --hard origin/main
             fi
             
-            make config_env
+            export ENVIRONMENT=${{vars.ENVIRONMENT}}
+            export PORT=${{vars.PORT}}
+            export ALLOWED_HOSTS=${{vars.ALLOWED_HOSTS}}
+            export WECHAT_MINI_GET_SESSION_KEY_URL=${{vars.WECHAT_MINI_GET_SESSION_KEY_URL}}
+            export WECHAT_MINI_APPID=${{secrets.WECHAT_MINI_APPID}}
+            export WECHAT_MINI_SECRET=${{secrets.WECHAT_MINI_SECRET}}
+            
             make migrate
             make collectstatic
             supervisorctl restart wristcheck
