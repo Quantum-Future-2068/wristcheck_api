@@ -7,7 +7,12 @@ from account.serializers.serializers import (
     LoginValidateErrorSerializer,
     WechatLoginValidateErrorSerializer,
 )
-from utils.schemas import response_schema
+from utils.schemas import (
+    response_schema,
+    parameter_ordering,
+    parameter_page_size,
+    parameter_search,
+)
 from account.serializers.model import UserSerializer
 from utils.serializers import ErrorResponseSerializer
 from wristcheck_api.constants import DEFAULT_PAGE_SIZE, DEFAULT_MAX_PAGE_SIZE
@@ -17,26 +22,9 @@ list_schema_info = dict(
     summary="user_list",
     description="**PERMISSION**: Allows access only to admin users.",
     parameters=[
-        OpenApiParameter(
-            name="ordering",
-            type=OpenApiTypes.STR,
-            description="Which field to use when ordering the results. default: -last_login",
-            enum=["date_joined", "last_login"],
-            required=False,
-        ),
-        OpenApiParameter(
-            name="page_size",
-            type=OpenApiTypes.INT,
-            description=f"Number of results to return per page. Maximum value is {DEFAULT_MAX_PAGE_SIZE}.",
-            required=False,
-            default=DEFAULT_PAGE_SIZE,
-        ),
-        OpenApiParameter(
-            name="search",
-            type=OpenApiTypes.STR,
-            description=f"Filter results by **username** or **email**. ",
-            required=False,
-        ),
+        parameter_page_size(),
+        parameter_ordering(["date_joined", "last_login"], default="-date_joined"),
+        parameter_search(["username", "email"]),
     ],
     responses={
         200: response_schema(200, UserSerializer, many=True),

@@ -6,9 +6,13 @@ from track.serializers.serializers import (
     WatchVisitRecordAddRequestSerializer,
     WatchVisitRecordAddValidateErrorSerializer,
 )
-from utils.schemas import response_schema
+from utils.schemas import (
+    response_schema,
+    parameter_page_size,
+    parameter_ordering,
+    parameter_search,
+)
 from utils.serializers import ErrorResponseSerializer
-from wristcheck_api.constants import DEFAULT_PAGE_SIZE, DEFAULT_MAX_PAGE_SIZE
 
 tags = ["track"]
 
@@ -17,26 +21,9 @@ list_schema_info = dict(
     summary="track_watch_visit_list",
     description="**PERMISSION**: Allows access only to admin users.",
     parameters=[
-        OpenApiParameter(
-            name="ordering",
-            type=OpenApiTypes.STR,
-            description="Which field to use when ordering the results. default: -created_at",
-            enum=["created_at"],
-            required=False,
-        ),
-        OpenApiParameter(
-            name="page_size",
-            type=OpenApiTypes.INT,
-            description=f"Number of results to return per page. Maximum value is {DEFAULT_MAX_PAGE_SIZE}.",
-            required=False,
-            default=DEFAULT_PAGE_SIZE,
-        ),
-        OpenApiParameter(
-            name="search",
-            type=OpenApiTypes.STR,
-            description=f"Filter results by **watch_id** or **user_id**. ",
-            required=False,
-        ),
+        parameter_page_size(),
+        parameter_ordering(["created_at"], default="-created_at"),
+        parameter_search(["watch_id", "user_id"]),
     ],
     responses={
         200: response_schema(200, WatchVisitRecordSerializer, many=True),
@@ -93,7 +80,7 @@ analytics_schema_info = dict(
     tags=tags,
     summary="track_watch_visit_analytics",
     description="""
-**PERMISSION**: Allows access only to authenticated users.
+**PERMISSION**: Allows access only to admin users.
 
 Obtain the distribution of the number of times a user visits watch over a period of time
 
