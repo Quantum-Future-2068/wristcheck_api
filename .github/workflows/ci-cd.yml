@@ -25,6 +25,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+            ${{ runner.os }}-pip-
+            pip-
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -62,12 +72,14 @@ jobs:
             fi
             
             cd ${{ vars.ECS_PATH }}
-            echo "ENVIRONMENT=${{vars.ENVIRONMENT}}" > .env
-            echo "PORT=${{vars.PORT}}" >> .env
-            echo "ALLOWED_HOSTS=${{vars.ALLOWED_HOSTS}}" >> .env
-            echo "WECHAT_MINI_GET_SESSION_KEY_URL=${{vars.WECHAT_MINI_GET_SESSION_KEY_URL}}"  >> .env
-            echo "WECHAT_MINI_APPID=${{secrets.WECHAT_MINI_APPID}}" >> .env
-            echo "WECHAT_MINI_SECRET=${{secrets.WECHAT_MINI_SECRET}}" >> .env
+            cat <<EOF > .env
+            ENVIRONMENT=${{ vars.ENVIRONMENT }}
+            PORT=${{ vars.PORT }}
+            ALLOWED_HOSTS=${{ vars.ALLOWED_HOSTS }}
+            WECHAT_MINI_GET_SESSION_KEY_URL=${{ vars.WECHAT_MINI_GET_SESSION_KEY_URL }}
+            WECHAT_MINI_APPID=${{ secrets.WECHAT_MINI_APPID }}
+            WECHAT_MINI_SECRET=${{ secrets.WECHAT_MINI_SECRET }}
+            EOF
             
             make migrate
             make collectstatic
