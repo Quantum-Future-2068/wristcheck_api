@@ -1,6 +1,7 @@
 import os
 
 import requests
+from django.db import transaction
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django_filters.rest_framework import DjangoFilterBackend
@@ -106,24 +107,24 @@ class UserViewSet(CustomGetPermissionMixin, viewsets.ReadOnlyModelViewSet):
                 {"detail": "Can not get wechat openid"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+        with transaction.atomic():
+            social = Social.objects.filter(open_id=open_id).first()
+            if not social:
+                user = User.objects.create(username=wechat_data.get("nickname", ""))
+                Social.objects.create(
+                    **{
+                        "user": user,
+                        "open_id": open_id,
+                        "nickname": wechat_data.get("nickname", None),
+                        "avatar_url": wechat_data.get("avatar_url", None),
+                    }
+                )
+            else:
+                user = social.user
 
-        social = Social.objects.filter(open_id=open_id).first()
-        if not social:
-            user = User.objects.create(username=wechat_data.get("nickname", ""))
-            Social.objects.create(
-                **{
-                    "user": user,
-                    "open_id": open_id,
-                    "nickname": wechat_data.get("nickname", None),
-                    "avatar_url": wechat_data.get("avatar_url", None),
-                }
-            )
-        else:
-            user = social.user
-
-        token, _ = Token.objects.get_or_create(user=user)
-        response_serializer = LoginResponseSerializer({"token": token.key})
-        return Response(response_serializer.data)
+            token, _ = Token.objects.get_or_create(user=user)
+            response_serializer = LoginResponseSerializer({"token": token.key})
+            return Response(response_serializer.data)
 
     @extend_schema(**profile_schema_info)
     @action(methods=["GET"], detail=False)
