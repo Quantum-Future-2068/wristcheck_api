@@ -1,4 +1,5 @@
 import os
+import uuid
 
 import requests
 from django.db import transaction
@@ -110,7 +111,9 @@ class UserViewSet(CustomGetPermissionMixin, viewsets.ReadOnlyModelViewSet):
         with transaction.atomic():
             social = Social.objects.filter(open_id=open_id).first()
             if not social:
-                user = User.objects.create(username=wechat_data.get("nickname", ""))
+                user = User.objects.create(
+                    username=wechat_data.get("nickname", str(uuid.uuid4()))
+                )
                 Social.objects.create(
                     **{
                         "user": user,
