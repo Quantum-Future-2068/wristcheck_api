@@ -6,6 +6,7 @@ from account.serializers.serializers import (
     WechatLoginRequestSerializer,
     LoginValidateErrorSerializer,
     WechatLoginValidateErrorSerializer,
+    LoginResponseSerializer,
 )
 from utils.schemas import (
     response_schema,
@@ -37,7 +38,7 @@ retrieve_schema_info = dict(
     summary="user_retrieve",
     description="**PERMISSION**: Allows access only to owner or admin users.",
     responses={
-        200: response_schema(200, UserSerializer, many=False),
+        200: response_schema(200, LoginResponseSerializer, many=False),
         401: response_schema(401, ErrorResponseSerializer),
     },
 )
@@ -48,7 +49,7 @@ login_schema_info = dict(
     description="Login with username and password and return a token.",
     request=LoginRequestSerializer,
     responses={
-        200: response_schema(200, UserSerializer, many=False),
+        200: response_schema(200, LoginResponseSerializer, many=False),
         400: response_schema(400, LoginValidateErrorSerializer),
         401: response_schema(401, ErrorResponseSerializer),
     },
@@ -60,7 +61,7 @@ wechat_mini_login_schema_info = dict(
     description="Login with code and return a token.",
     request=WechatLoginRequestSerializer,
     responses={
-        200: response_schema(200, UserSerializer, many=False),
+        200: response_schema(200, LoginResponseSerializer, many=False),
         400: response_schema(400, WechatLoginValidateErrorSerializer),
         500: response_schema(500, ErrorResponseSerializer),
     },
