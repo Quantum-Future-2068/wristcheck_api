@@ -33,8 +33,8 @@ status_code_schema_map = {
 }
 
 
-def response_schema(status_code, serializer_class, many=True):
-    return status_code_schema_map[status_code](serializer_class, many)
+def response_schema(status_code, serializer_class, many=True, *args, **kwargs):
+    return status_code_schema_map[status_code](serializer_class, many, *args, **kwargs)
 
 
 # def generate_response_schemas(status_code_infos):

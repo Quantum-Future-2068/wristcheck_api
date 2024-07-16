@@ -90,7 +90,7 @@ class WatchVisitRecordViewSet(
     @extend_schema(**analytics_schema_info)
     @action(detail=False, methods=["get"], url_path="analytics")
     def analytics(self, request, *args, **kwargs):
-        period = request.data.get("period", "month")
+        period = request.query_params.get("period", "month")
         now = timezone.now()
         start_time_map = dict(
             day=now - timedelta(days=1),

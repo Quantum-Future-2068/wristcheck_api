@@ -10,7 +10,11 @@ from utils.schemas import (
     parameter_search,
 )
 from utils.serializers import ErrorResponseSerializer
-from wishlist.serializers.serializers import WishlistAddRequestSerializer
+from wishlist.serializers.serializers import (
+    WishlistAddRequestSerializer,
+    FavoriteStatusRequestSerializer,
+    FavoriteStatusResponseSerializer,
+)
 from wristcheck_api.constants import (
     DEFAULT_PAGE_SIZE,
     DEFAULT_MAX_PAGE_SIZE,
@@ -76,6 +80,27 @@ my_own_schema_info = dict(
     description="**PERMISSION**: Allows access only to authenticated users.",
     responses={
         200: response_schema(200, WatchVisitRecordSerializer, many=True),
+        401: response_schema(401, ErrorResponseSerializer),
+    },
+)
+
+favorite_status_schema_info = dict(
+    tags=tags,
+    summary="favorite_status",
+    description="""Usage scenario: Browse the recent page to display the favorite status of the watch.<br>
+    **PERMISSION**: Allows access only to authenticated users.
+    """,
+    parameters=[
+        OpenApiParameter(
+            name="watch_ids",
+            type=OpenApiTypes.STR,
+            description='Comma separated watch ids. Example: "?watch_ids=1&watch_ids=2"',
+            required=True,
+        )
+    ],
+    request=FavoriteStatusRequestSerializer,
+    responses={
+        200: FavoriteStatusResponseSerializer(many=True),
         401: response_schema(401, ErrorResponseSerializer),
     },
 )
