@@ -5,6 +5,10 @@ class WishlistAddRequestSerializer(serializers.Serializer):
     watch_id = serializers.CharField(required=True)
 
 
+class WishlistCancelRequestSerializer(WishlistAddRequestSerializer):
+    pass
+
+
 class WishlistAddValidateErrorSerializer(serializers.Serializer):
     watch_id = serializers.ListSerializer(child=serializers.CharField(), required=False)
 

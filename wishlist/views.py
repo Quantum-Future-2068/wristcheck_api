@@ -1,3 +1,6 @@
+from datetime import datetime, timezone
+
+from django.core.exceptions import ObjectDoesNotExist
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, status
@@ -22,12 +25,14 @@ from wishlist.schemas import (
     add_schema_info,
     favorite_status_schema_info,
     my_own_schema_info,
+    cancel_schema_info,
 )
 from wishlist.serializers.models import WishlistSerializer
 from wishlist.serializers.serializers import (
     WishlistAddRequestSerializer,
     FavoriteStatusRequestSerializer,
     FavoriteStatusResponseSerializer,
+    WishlistCancelRequestSerializer,
 )
 from wristcheck_api.constants import USUAL_ORDERING_FIELDS, USUAL_ORDERING
 from utils.permission import CustomGetPermissionMixin, IsOwnerOrAdminUser
@@ -54,6 +59,7 @@ class WishlistViewSet(
         "retrieve": [IsOwnerOrAdminUser],
         "destroy": [IsOwnerOrAdminUser],
         "add": [IsAuthenticated],
+        "cancel": [IsAuthenticated],
         "my_own": [IsAuthenticated],
         "favorite_status": [IsAuthenticated],
     }
@@ -66,10 +72,12 @@ class WishlistViewSet(
 
     @extend_schema(**list_schema_info)
     def list(self, request, *args, **kwargs):
+        self.queryset = self.get_queryset().filter(deleted_at__isnull=True)
         return super().list(request, *args, **kwargs)
 
     @extend_schema(**retrieve_schema_info)
     def retrieve(self, request, *args, **kwargs):
+        self.queryset = self.get_queryset().filter(deleted_at__isnull=True)
         return super().retrieve(request, *args, **kwargs)
 
     @extend_schema(**destroy_schema_info)
@@ -82,14 +90,41 @@ class WishlistViewSet(
         serializer = WishlistAddRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        data = dict(user=request.user.id, watch_id=request.data.get("watch_id"))
-        serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        wishlist_item, created = Wishlist.objects.get_or_create(
+            user=request.user, watch_id=request.data["watch_id"]
+        )
+        if not created:
+            wishlist_item.deleted_at = None
+            wishlist_item.save()
+
+        serializer = self.get_serializer(wishlist_item)
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
         )
+
+    @extend_schema(**cancel_schema_info)
+    @action(methods=["POST"], detail=False)
+    def cancel(self, request, *args, **kwargs):
+        serializer = WishlistCancelRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            wishlist_item = Wishlist.objects.get(
+                user=request.user,
+                watch_id=serializer.validated_data.get("watch_id"),
+            )
+            wishlist_item.deleted_at = datetime.now(timezone.utc)
+            wishlist_item.save()
+        except ObjectDoesNotExist:
+            return Response(
+                {"detail": "the wishlist item is not found"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = self.get_serializer(wishlist_item)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
 
     @extend_schema(**my_own_schema_info)
     @action(methods=["GET"], detail=False)

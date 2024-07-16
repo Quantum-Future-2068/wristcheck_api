@@ -14,6 +14,7 @@ from wishlist.serializers.serializers import (
     FavoriteStatusRequestSerializer,
     FavoriteStatusResponseSerializer,
     WishlistAddValidateErrorSerializer,
+    WishlistCancelRequestSerializer,
 )
 from wristcheck_api.constants import (
     DEFAULT_PAGE_SIZE,
@@ -69,6 +70,18 @@ add_schema_info = dict(
     request=WishlistAddRequestSerializer,
     responses={
         201: response_schema(201, WishlistSerializer, many=False),
+        400: response_schema(400, WishlistAddValidateErrorSerializer),
+        401: response_schema(401, ErrorResponseSerializer),
+    },
+)
+
+cancel_schema_info = dict(
+    tags=tags,
+    summary="wishlist_cancel",
+    description="**PERMISSION**: Allows access only to authenticated users.",
+    request=WishlistCancelRequestSerializer,
+    responses={
+        200: response_schema(200, WishlistSerializer, many=False),
         400: response_schema(400, WishlistAddValidateErrorSerializer),
         401: response_schema(401, ErrorResponseSerializer),
     },
