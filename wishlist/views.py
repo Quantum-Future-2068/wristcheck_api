@@ -98,7 +98,15 @@ class WishlistViewSet(
         return self.list(request)
 
     @extend_schema(**favorite_status_schema_info)
-    @action(detail=False, methods=["get"], url_path="favorite_status")
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="favorite_status",
+        pagination_class=None,
+        filter_backends=[DjangoFilterBackend],
+        filterset_fields=[],
+        permission_classes=[IsAuthenticated],
+    )
     def favorite_status(self, request):
         """Usage scenario: Browse the recent page to display the favorite status of the watch
         example: GET /wishlist/favorite_status/?watch_ids=1&watch_ids=2
