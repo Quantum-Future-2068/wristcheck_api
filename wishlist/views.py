@@ -129,7 +129,11 @@ class WishlistViewSet(
     @extend_schema(**my_own_schema_info)
     @action(methods=["GET"], detail=False)
     def my_own(self, request):
-        self.queryset = self.get_queryset().filter(user=request.user)
+        self.queryset = (
+            self.get_queryset()
+            .filter(user=request.user)
+            .filter(deleted_at__isnull=True)
+        )
         return self.list(request)
 
     @extend_schema(**favorite_status_schema_info)
