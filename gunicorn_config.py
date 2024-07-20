@@ -7,7 +7,7 @@ env.read_env(override=False)
 
 bind = f'{env.str("HOST", "0.0.0.0")}:{env.str("PORT", 80)}'
 workers = env.int("GUNICORN_WORKERS", multiprocessing.cpu_count() * 2 + 1)
-threads = 2
+threads = 1
 timeout = 30
 worker_class = "sync"
 daemon = False
