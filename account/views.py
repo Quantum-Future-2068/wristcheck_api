@@ -5,6 +5,7 @@ import requests
 from django.db import transaction
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets, status
@@ -124,6 +125,8 @@ class UserViewSet(CustomGetPermissionMixin, viewsets.ReadOnlyModelViewSet):
                 )
             else:
                 user = social.user
+                user.last_login = timezone.now()
+                user.save()
 
             token, _ = Token.objects.get_or_create(user=user)
             response_serializer = LoginResponseSerializer({"token": token.key})
