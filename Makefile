@@ -44,6 +44,15 @@ reload_gunicorn:
 process:
 	ps aux | grep gunicorn
 
+stop:
+	supervisorctl stop wristcheck
+
+start:
+	supervisorctl start wristcheck
+
+restart:
+	supervisorctl restart wristcheck
+
 stop_gunicorn:
 	pkill -f gunicorn
 
