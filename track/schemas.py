@@ -22,7 +22,7 @@ list_schema_info = dict(
     description="**PERMISSION**: Allows access only to admin users.",
     parameters=[
         parameter_page_size(),
-        parameter_ordering(["created_at"], default="-created_at"),
+        parameter_ordering(["updated_at"], default="-updated_at"),
         parameter_search(["watch_id", "user_id"]),
     ],
     responses={
