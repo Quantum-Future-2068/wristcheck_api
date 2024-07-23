@@ -1,6 +1,6 @@
 # wristcheck_api
 
-Provide Rest API for mini-programs and dashboard backend
+Provide Rest API for mini-programs and dashboard
 
 ## Requirements
 
