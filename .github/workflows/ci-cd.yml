@@ -76,6 +76,7 @@ jobs:
             ENVIRONMENT=${{ vars.ENVIRONMENT }}
             PORT=${{ vars.PORT }}
             ALLOWED_HOSTS=${{ vars.ALLOWED_HOSTS }}
+            CSRF_TRUSTED_ORIGINS=${{ vars.CSRF_TRUSTED_ORIGINS }}
             WECHAT_MINI_GET_SESSION_KEY_URL=${{ vars.WECHAT_MINI_GET_SESSION_KEY_URL }}
             WECHAT_MINI_APPID=${{ secrets.WECHAT_MINI_APPID }}
             WECHAT_MINI_SECRET=${{ secrets.WECHAT_MINI_SECRET }}
