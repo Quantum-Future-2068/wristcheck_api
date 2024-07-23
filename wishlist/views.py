@@ -89,7 +89,6 @@ class WishlistViewSet(
     def add(self, request, *args, **kwargs):
         serializer = WishlistAddRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
         wishlist_item, created = Wishlist.objects.get_or_create(
             user=request.user, watch_id=request.data["watch_id"]
         )

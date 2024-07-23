@@ -51,8 +51,8 @@ class WatchVisitRecordViewSet(
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["user_id", "watch_id"]
     search_fields = ["user_id", "watch_id"]
-    ordering_fields = ["created_at"]
-    ordering = ["-created_at"]
+    ordering_fields = ["updated_at"]
+    ordering = ["-updated_at"]
 
     @extend_schema(**list_schema_info)
     def list(self, request, *args, **kwargs):
@@ -72,10 +72,15 @@ class WatchVisitRecordViewSet(
         serializer = WatchVisitRecordAddRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        request.data["user"] = request.user.id
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        visit_record, created = WatchVisitRecord.objects.get_or_create(
+            user=request.user, watch_id=request.data["watch_id"]
+        )
+        if not created:
+            visit_record.updated_at = timezone.now()
+            visit_record.count += 1
+            visit_record.save()
+
+        serializer = self.get_serializer(visit_record)
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers

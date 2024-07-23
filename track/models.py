@@ -2,11 +2,13 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+from wristcheck_api.models import TimestampedModel
 
-class WatchVisitRecord(models.Model):
+
+class WatchVisitRecord(TimestampedModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     watch_id = models.CharField(max_length=255, null=False, blank=False)
-    created_at = models.DateTimeField(auto_now_add=True)
+    count = models.IntegerField(default=0)
 
     class Meta:
-        ordering = ["-created_at"]
+        ordering = ["-updated_at"]
