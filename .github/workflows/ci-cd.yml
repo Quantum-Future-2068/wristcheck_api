@@ -81,7 +81,6 @@ jobs:
             WECHAT_MINI_GET_SESSION_KEY_URL=${{ vars.WECHAT_MINI_GET_SESSION_KEY_URL }}
             WECHAT_MINI_APPID=${{ secrets.WECHAT_MINI_APPID }}
             WECHAT_MINI_SECRET=${{ secrets.WECHAT_MINI_SECRET }}
-            ECS_KEY=${{ secrets.ECS_KEY }}
             EOF
             
             make migrate
