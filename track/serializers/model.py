@@ -17,4 +17,8 @@ class WatchVisitRecordSerializer(serializers.ModelSerializer):
     @extend_schema_field(OpenApiTypes.BOOL)
     def get_in_wishlist(self, obj):
         user = self.context["request"].user
-        return Wishlist.objects.filter(user=user, watch_id=obj.watch_id).exists()
+        return (
+            Wishlist.objects.filter(user=user, watch_id=obj.watch_id)
+            .filter(deleted_at__isnull=True)
+            .exists()
+        )

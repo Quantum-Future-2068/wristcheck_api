@@ -154,7 +154,10 @@ class WishlistViewSet(
         watch_ids = serializer.validated_data["watch_ids"]
 
         self.queryset = (
-            self.get_queryset().filter(user=request.user).filter(watch_id__in=watch_ids)
+            self.get_queryset()
+            .filter(user=request.user)
+            .filter(watch_id__in=watch_ids)
+            .filter(deleted_at__isnull=True)
         )
         wishlist_serializer = self.get_serializer(self.queryset, many=True)
         wishlists = wishlist_serializer.data
