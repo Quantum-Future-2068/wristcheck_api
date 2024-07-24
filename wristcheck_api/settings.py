@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 import os
 from pathlib import Path
 
+import sentry_sdk
 from dj_database_url import parse as db_url
 
 from environs import Env
@@ -188,15 +189,24 @@ LOGGING = {
         },
     },
     "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "WARNING",
+        },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
         "django.db.backends": {
             "handlers": ["console"],
             "level": "WARNING",
-            "propagate": True,
+            "propagate": False,
         },
         "gunicorn.errors": {
             "handlers": ["file"],
             "level": "WARNING",
-            "propagate": True,
+            "propagate": False,
         },
     },
 }
@@ -216,3 +226,11 @@ if env.str("ENVIRONMENT") != "local":
     CSRF_COOKIE_SECURE = True
 
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", [])
+
+# https://docs.sentry.io/platforms/python/integrations/django/
+sentry_sdk.init(
+    dsn="https://1b5999f3b527314b18c4ffa17d0dfd0a@o413187.ingest.us.sentry.io/4507656363048960",
+    traces_sample_rate=1.0 if env.str("ENVIRONMENT") == "local" else 0.01,
+    profiles_sample_rate=1.0 if env.str("ENVIRONMENT") == "local" else 0.01,
+    environment=env.str("ENVIRONMENT", "local"),
+)

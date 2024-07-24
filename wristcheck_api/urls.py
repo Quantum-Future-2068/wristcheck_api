@@ -40,6 +40,7 @@ urlpatterns = [
         name="swagger-ui",
     ),
     path("doc/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
+    path("sentry-debug/", lambda request: 1 / 0),  # 触发sentry异常
 ]
 
 router = DefaultRouter()
