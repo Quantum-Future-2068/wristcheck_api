@@ -40,6 +40,7 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", [])
 # Application definition
 
 INSTALLED_APPS = [
+    "account.apps.AccountConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -51,9 +52,7 @@ INSTALLED_APPS = [
     "django_filters",
     "rest_framework.authtoken",
     "drf_spectacular",
-    "banner.apps.BannerConfig",
     "wishlist.apps.WishlistConfig",
-    "account.apps.AccountConfig",
     "track.apps.TrackConfig",
 ]
 
@@ -211,14 +210,6 @@ LOGGING = {
     },
 }
 
-# ALI STS
-ALI_ACCESS_KEY_ID = "your-access-key-id"
-ALI_ACCESS_KEY_SECRET = "your-access-key-secret"
-ALI_ROLE_ARN = "acs:ram::1234567890123456:role/your-role-name"
-ALI_ROLE_SESSION_NAME = "your-role-session-name"
-ALI_REGION = "cn-hangzhou"
-ALI_STS_DURATION_SECONDS = 3600
-
 # HTTPS
 if env.str("ENVIRONMENT") != "local":
     SECURE_SSL_REDIRECT = True
@@ -234,3 +225,6 @@ sentry_sdk.init(
     profiles_sample_rate=1.0 if env.str("ENVIRONMENT") == "local" else 0.01,
     environment=env.str("ENVIRONMENT", "local"),
 )
+
+# Custom User Model
+AUTH_USER_MODEL = "account.User"

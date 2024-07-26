@@ -1,6 +1,6 @@
-from django.contrib.auth.models import User
 from django.db import models
 
+from account.models import User
 from wristcheck_api.models import TimestampedModel, SoftDeletedModel
 
 
@@ -10,6 +10,4 @@ class Wishlist(TimestampedModel, SoftDeletedModel):
 
     class Meta:
         unique_together = ("user", "watch_id")
-
-    def __str__(self):
-        return f"{self.user.username} - {self.watch_id}"
+        ordering = ["-updated_at"]

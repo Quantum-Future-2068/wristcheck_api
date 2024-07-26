@@ -60,4 +60,7 @@ class IsOwnerOrAdminUser(BasePermission):
         if isinstance(obj, User):
             return obj.id == request.user.id
         else:
-            return obj.user == request.user
+            if hasattr(obj, "user"):
+                return obj.user == request.user
+            else:
+                return obj == request.user

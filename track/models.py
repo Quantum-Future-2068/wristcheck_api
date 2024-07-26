@@ -1,7 +1,7 @@
 # models.py
-from django.contrib.auth.models import User
 from django.db import models
 
+from account.models import User
 from wristcheck_api.models import TimestampedModel
 
 
@@ -11,4 +11,5 @@ class WatchVisitRecord(TimestampedModel):
     count = models.IntegerField(default=0)
 
     class Meta:
+        unique_together = ("user", "watch_id")
         ordering = ["-updated_at"]

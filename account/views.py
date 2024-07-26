@@ -1,10 +1,8 @@
-import os
 import uuid
 
 import requests
 from django.db import transaction
 from django.contrib.auth import authenticate
-from django.contrib.auth.models import User
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
@@ -20,7 +18,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 
-from account.models import Social
+from account.models import Social, User
 from account.schemas import (
     list_schema_info,
     retrieve_schema_info,
@@ -34,6 +32,7 @@ from account.serializers.serializers import (
     LoginResponseSerializer,
 )
 from account.serializers.model import UserSerializer
+from account.utils.signinup import wristcheck_signinup
 from utils.pagination import CustomPagination
 from utils.permission import CustomGetPermissionMixin, IsOwnerOrAdminUser
 from wristcheck_api.settings import env
@@ -112,15 +111,16 @@ class UserViewSet(CustomGetPermissionMixin, viewsets.ReadOnlyModelViewSet):
         with transaction.atomic():
             social = Social.objects.filter(open_id=open_id).first()
             if not social:
+                sign_res = wristcheck_signinup(open_id, wechat_data.get("session_key"))
+                wristcheck_user_id = sign_res.get("user", {}).get("id")
                 user = User.objects.create(
-                    username=wechat_data.get("nickname", str(uuid.uuid4()))
+                    id=wristcheck_user_id,
+                    username=str(uuid.uuid4()),
                 )
                 Social.objects.create(
                     **{
                         "user": user,
                         "open_id": open_id,
-                        "nickname": wechat_data.get("nickname", None),
-                        "avatar_url": wechat_data.get("avatar_url", None),
                     }
                 )
             else:

@@ -1,11 +1,13 @@
-from unittest.mock import patch
+import uuid
+from unittest.mock import patch, MagicMock
 
 import pytest
 from factory import Faker
 from factory.django import DjangoModelFactory
 from rest_framework.test import APIClient
-from django.contrib.auth.models import User
 from rest_framework import status
+
+from account.models import User
 
 
 # Factory to create test users
@@ -13,6 +15,7 @@ class UserFactory(DjangoModelFactory):
     class Meta:
         model = User
 
+    id = Faker("uuid4")
     username = Faker("user_name")
     email = Faker("email")
     password = Faker("password")
@@ -131,13 +134,15 @@ class TestUserListView:
 
         # Assert response
         assert response.status_code == status.HTTP_200_OK
-        assert (
-            response.data["id"] == self.admin_user.id
+        assert str(response.data["id"]) == str(
+            self.admin_user.id
         )  # Example assertion based on serializer output
 
     def test_retrieve_authenticated_admin(self):
         # Create an admin user (if needed)
-        admin_user = User.objects.create_superuser(username="admin", password="admin")
+        admin_user = User.objects.create_superuser(
+            username="admin", password="admin", email="admin@localhost"
+        )
 
         # Authenticate as admin user
         self.client.force_login(admin_user)
@@ -147,8 +152,8 @@ class TestUserListView:
 
         # Assert response
         assert response.status_code == status.HTTP_200_OK
-        assert (
-            response.data["id"] == self.admin_user.id
+        assert str(response.data["id"]) == str(
+            self.admin_user.id
         )  # Example assertion based on serializer output
 
     def test_retrieve_unauthenticated(self):
@@ -172,7 +177,9 @@ class TestUserAuthEndpoints:
         # Prepare test user
         username = "admin"
         password = "admin"
-        user = User.objects.create_user(username=username, password=password)
+        user = User.objects.create_user(
+            username=username, password=password, email="admin@localhost"
+        )
 
         # Make login request
         response = self.client.post(
@@ -195,14 +202,20 @@ class TestUserAuthEndpoints:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert response.data["detail"] == "Invalid credentials"
 
+    @patch("account.utils.signinup.requests.post")
     @patch("account.views.requests.get")
-    def test_wechat_mini_login_success(self, mock_requests_get):
+    def test_wechat_mini_login_success(self, mock_requests_get, mock_requests_post):
         # Mock requests.get to return mocked data
         mock_requests_get.return_value.json.return_value = {
-            "openid": "mocked_open_id",
-            "nickname": "Mocked User",
-            "avatar_url": "avatar.png",
+            "session_key": "session_key",
+            "openid": "openid",
         }
+
+        # Mock requests.post to return mocked data
+        mock_response_post = MagicMock()
+        mock_response_post.status_code = 201
+        mock_response_post.json.return_value = {"user": {"id": str(uuid.uuid4())}}
+        mock_requests_post.return_value = mock_response_post
 
         # Make wechat_mini_login request
         response = self.client.post(

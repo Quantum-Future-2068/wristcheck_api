@@ -64,7 +64,7 @@ jobs:
           key: ${{ secrets.ECS_KEY }}
           script: |
             if [ ! -d "${{ vars.ECS_PATH }}" ]; then
-              git clone git@github.com:wrist-check/wc-miniprogram-api.git ${{ vars.ECS_PATH }}
+              git clone git@github.com:Quantum-Future-2068/wristcheck_api.git ${{ vars.ECS_PATH }}
             else
               cd ${{ vars.ECS_PATH }}
               git fetch origin
@@ -81,6 +81,7 @@ jobs:
             WECHAT_MINI_GET_SESSION_KEY_URL=${{ vars.WECHAT_MINI_GET_SESSION_KEY_URL }}
             WECHAT_MINI_APPID=${{ secrets.WECHAT_MINI_APPID }}
             WECHAT_MINI_SECRET=${{ secrets.WECHAT_MINI_SECRET }}
+            WRISTCHECK_API=${{ vars.WRISTCHECK_API }}
             EOF
             
             make migrate

@@ -46,7 +46,6 @@ urlpatterns = [
 router = DefaultRouter()
 router.register(r"user", UserViewSet)
 router.register(r"wishlist", WishlistViewSet)
-# router.register(r'banner', BannerViewSet)
 router.register(r"track/watch-visit", WatchVisitRecordViewSet)
 urlpatterns.extend(router.urls)
 
