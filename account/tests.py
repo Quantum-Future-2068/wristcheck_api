@@ -7,7 +7,7 @@ from factory.django import DjangoModelFactory
 from rest_framework.test import APIClient
 from rest_framework import status
 
-from account.models import User
+from account.models import User, Social
 
 
 # Factory to create test users
@@ -247,3 +247,40 @@ class TestUserAuthEndpoints:
         # Assert response
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.data["detail"] == "Can not get wechat openid"
+
+
+@pytest.mark.django_db
+class TestWechatProfile:
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        self.client = APIClient()
+        self.wechat_user = UserFactory(is_staff=False, is_superuser=False)
+        self.wechat_user.set_password("password")
+        self.wechat_user.save()
+        self.social = Social.objects.create(
+            user=self.wechat_user,
+            application_type="mp",
+            nickname=None,
+            avatar_url=None,
+            open_id="open_id",
+        )
+
+    def test_wechat_profile_non_field_errors(self):
+        self.client.login(username=self.wechat_user.username, password="password")
+        response = self.client.post("/user/wechat_profile/", {}, secure=True)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_wechat_profile_unauthenticated(self):
+        response = self.client.post("/user/wechat_profile/", {}, secure=True)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    @patch("dependency.oss_storage.OSSManager.stream_upload_avatar_from_url")
+    def test_wechat_profile_success(self, mock_stream_upload):
+        mock_stream_upload.return_value = {"object_key": "mocked_object_key"}
+        self.client.login(username=self.wechat_user.username, password="password")
+        response = self.client.post(
+            "/user/wechat_profile/",
+            {"nickname": "nickname", "avatar_url": "avatar_url"},
+            secure=True,
+        )
+        assert response.status_code == status.HTTP_200_OK

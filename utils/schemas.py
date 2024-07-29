@@ -1,32 +1,33 @@
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiResponse, OpenApiParameter
+from rest_framework import status
 
 from utils.serializers import ErrorResponseSerializer
 from wristcheck_api.constants import DEFAULT_MAX_PAGE_SIZE, DEFAULT_PAGE_SIZE
 
 status_code_schema_map = {
-    200: lambda serializer_class, many=True, *args, **kwargs: OpenApiResponse(
+    status.HTTP_200_OK: lambda serializer_class, many=True, *args, **kwargs: OpenApiResponse(
         response=serializer_class(many=many), description="Successful Response"
     ),
-    201: lambda serializer_class, many=True, *args, **kwargs: OpenApiResponse(
+    status.HTTP_201_CREATED: lambda serializer_class, many=True, *args, **kwargs: OpenApiResponse(
         response=serializer_class(many=many),
         description="HTTP Created Successful Response",
     ),
-    204: lambda serializer_class, many=True, *args, **kwargs: OpenApiResponse(
+    status.HTTP_204_NO_CONTENT: lambda serializer_class, many=True, *args, **kwargs: OpenApiResponse(
         response=None, description="HTTP No Content Successful Response"
     ),
-    400: lambda serializer_class, many=True, *args, **kwargs: OpenApiResponse(
+    status.HTTP_400_BAD_REQUEST: lambda serializer_class, many=True, *args, **kwargs: OpenApiResponse(
         response=serializer_class(many=many), description="Validation Error"
     ),
-    401: lambda *args, **kwargs: OpenApiResponse(
+    status.HTTP_401_UNAUTHORIZED: lambda *args, **kwargs: OpenApiResponse(
         response=ErrorResponseSerializer,
         description="Valid authentication credentials were not provided.",
     ),
-    403: lambda *args, **kwargs: OpenApiResponse(
+    status.HTTP_403_FORBIDDEN: lambda *args, **kwargs: OpenApiResponse(
         response=ErrorResponseSerializer,
         description="You do not have permission to perform this action.",
     ),
-    500: lambda *args, **kwargs: OpenApiResponse(
+    status.HTTP_500_INTERNAL_SERVER_ERROR: lambda *args, **kwargs: OpenApiResponse(
         response=ErrorResponseSerializer,
         description=kwargs.get("description", "Internal Server Error. "),
     ),
@@ -35,16 +36,6 @@ status_code_schema_map = {
 
 def response_schema(status_code, serializer_class, many=True, *args, **kwargs):
     return status_code_schema_map[status_code](serializer_class, many, *args, **kwargs)
-
-
-# def generate_response_schemas(status_code_infos):
-#     schemas = {}
-#     for status_code_info in status_code_infos.items():
-#         status_code = status_code_info.get('status_code')
-#         serializer_class = status_code_info.get('serializer_class')
-#         many = status_code_info.get('many', True)
-#         schemas[status_code] = generate_response_schema(status_code, serializer_class, many)
-#     return schemas
 
 
 def parameter_ordering(ordering_fields, default=None):

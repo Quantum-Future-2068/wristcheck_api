@@ -14,3 +14,11 @@ GUNICORN_LOG_LEVEL=debug
 GUNICORN_ACCESS_LOG=gunicorn_access.log
 GUNICORN_ERROR_LOG=gunicorn_error.log
 WRISTCHECK_API=http://api.wristchecklab.com
+
+DOMAIN=https://wristcheck.imdancer.com
+STATIC_DOMAIN=https://wristcheck-static.imdancer.com
+
+OSS_ACCESS_KEY_ID=xxx
+OSS_ACCESS_KEY_SECRET=xxx
+OSS_ENDPOINT=oss-cn-hangzhou.aliyuncs.com
+OSS_BUCKET=wristcheck

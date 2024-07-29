@@ -82,6 +82,12 @@ jobs:
             WECHAT_MINI_APPID=${{ secrets.WECHAT_MINI_APPID }}
             WECHAT_MINI_SECRET=${{ secrets.WECHAT_MINI_SECRET }}
             WRISTCHECK_API=${{ vars.WRISTCHECK_API }}
+            OSS_ACCESS_KEY_ID=${{ secrets.OSS_ACCESS_KEY_ID }}
+            OSS_ACCESS_KEY_SECRET=${{ secrets.OSS_ACCESS_KEY_SECRET }}
+            OSS_ENDPOINT=${{ vars.OSS_ENDPOINT }}
+            OSS_BUCKET=${{ vars.OSS_BUCKET }}
+            DOMAIN=${{ vars.DOMAIN }}
+            STATIC_DOMAIN=${{ vars.STATIC_DOMAIN }}
             EOF
             
             make migrate

@@ -25,17 +25,26 @@ from account.schemas import (
     login_schema_info,
     wechat_mini_login_schema_info,
     profile_schema_info,
+    wechat_profile_schema_info,
 )
 from account.serializers.serializers import (
     LoginRequestSerializer,
     WechatLoginRequestSerializer,
     LoginResponseSerializer,
+    WechatProfilePostSerializer,
 )
 from account.serializers.model import UserSerializer
 from account.utils.signinup import wristcheck_signinup
+from dependency.oss_storage import OSSManager
 from utils.pagination import CustomPagination
 from utils.permission import CustomGetPermissionMixin, IsOwnerOrAdminUser
-from wristcheck_api.settings import env
+from wristcheck_api.settings import (
+    env,
+    OSS_ACCESS_KEY_ID,
+    OSS_ACCESS_KEY_SECRET,
+    OSS_ENDPOINT,
+    OSS_BUCKET,
+)
 
 
 class UserViewSet(CustomGetPermissionMixin, viewsets.ReadOnlyModelViewSet):
@@ -51,6 +60,7 @@ class UserViewSet(CustomGetPermissionMixin, viewsets.ReadOnlyModelViewSet):
         "list": [IsAdminUser],
         "retrieve": [IsOwnerOrAdminUser],
         "profile": [IsAuthenticated],
+        "wechat_profile": [IsAuthenticated],
     }
     pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -138,3 +148,34 @@ class UserViewSet(CustomGetPermissionMixin, viewsets.ReadOnlyModelViewSet):
         instance = User.objects.filter(id=request.user.id).first()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+    @extend_schema(**wechat_profile_schema_info)
+    @action(
+        methods=["POST"],
+        detail=False,
+        permission_classes=[IsAuthenticated],
+    )
+    def wechat_profile(self, request, *args, **kwargs):
+        """Update wechat profile, eg: avatar, nickname.
+        At least one of 'nickname' or 'avatar_url' must be provided.
+        """
+        serializer = WechatProfilePostSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        avatar_url = validated_data.get("avatar_url")
+        update_data = dict(nickname=validated_data.get("nickname", "微信匿名用户"))
+        if avatar_url:
+            manager = OSSManager(
+                access_key_id=OSS_ACCESS_KEY_ID,
+                access_key_secret=OSS_ACCESS_KEY_SECRET,
+                endpoint=OSS_ENDPOINT,
+                bucket_name=OSS_BUCKET,
+                subdirectory="wechat-avatar",
+            )
+            res = manager.stream_upload_avatar_from_url(request.user.id, url=avatar_url)
+            update_data.update(avatar_url=res["object_key"])
+
+        Social.objects.filter(user=request.user, application_type="mp").update(
+            **update_data
+        )
+        return Response(status=status.HTTP_200_OK)

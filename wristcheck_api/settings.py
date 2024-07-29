@@ -204,7 +204,7 @@ LOGGING = {
         },
         "gunicorn.errors": {
             "handlers": ["file"],
-            "level": "WARNING",
+            "level": "DEBUG",
             "propagate": False,
         },
     },
@@ -228,3 +228,9 @@ sentry_sdk.init(
 
 # Custom User Model
 AUTH_USER_MODEL = "account.User"
+
+# OSS
+OSS_ACCESS_KEY_ID = env.str("OSS_ACCESS_KEY_ID")
+OSS_ACCESS_KEY_SECRET = env.str("OSS_ACCESS_KEY_SECRET")
+OSS_ENDPOINT = env.str("OSS_ENDPOINT")
+OSS_BUCKET = env.str("OSS_BUCKET")

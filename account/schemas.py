@@ -1,5 +1,6 @@
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter
+from rest_framework import status
 
 from account.serializers.serializers import (
     LoginRequestSerializer,
@@ -7,6 +8,7 @@ from account.serializers.serializers import (
     LoginValidateErrorSerializer,
     WechatLoginValidateErrorSerializer,
     LoginResponseSerializer,
+    WechatProfilePostSerializer,
 )
 from utils.schemas import (
     response_schema,
@@ -15,7 +17,10 @@ from utils.schemas import (
     parameter_search,
 )
 from account.serializers.model import UserSerializer
-from utils.serializers import ErrorResponseSerializer
+from utils.serializers import (
+    ErrorResponseSerializer,
+    ValidationNonFieldErrorSerializer,
+)
 from wristcheck_api.constants import DEFAULT_PAGE_SIZE, DEFAULT_MAX_PAGE_SIZE
 
 list_schema_info = dict(
@@ -28,9 +33,15 @@ list_schema_info = dict(
         parameter_search(["username", "email"]),
     ],
     responses={
-        200: response_schema(200, UserSerializer, many=True),
-        401: response_schema(401, ErrorResponseSerializer),
-        403: response_schema(403, ErrorResponseSerializer),
+        status.HTTP_200_OK: response_schema(
+            status.HTTP_200_OK, UserSerializer, many=True
+        ),
+        status.HTTP_401_UNAUTHORIZED: response_schema(
+            status.HTTP_401_UNAUTHORIZED, ErrorResponseSerializer
+        ),
+        status.HTTP_403_FORBIDDEN: response_schema(
+            status.HTTP_403_FORBIDDEN, ErrorResponseSerializer
+        ),
     },
 )
 
@@ -38,8 +49,12 @@ retrieve_schema_info = dict(
     summary="user_retrieve",
     description="**PERMISSION**: Allows access only to owner or admin users.",
     responses={
-        200: response_schema(200, LoginResponseSerializer, many=False),
-        401: response_schema(401, ErrorResponseSerializer),
+        status.HTTP_200_OK: response_schema(
+            status.HTTP_200_OK, LoginResponseSerializer, many=False
+        ),
+        status.HTTP_401_UNAUTHORIZED: response_schema(
+            status.HTTP_401_UNAUTHORIZED, ErrorResponseSerializer
+        ),
     },
 )
 
@@ -49,9 +64,15 @@ login_schema_info = dict(
     description="Login with username and password and return a token.",
     request=LoginRequestSerializer,
     responses={
-        200: response_schema(200, LoginResponseSerializer, many=False),
-        400: response_schema(400, LoginValidateErrorSerializer),
-        401: response_schema(401, ErrorResponseSerializer),
+        status.HTTP_200_OK: response_schema(
+            status.HTTP_200_OK, LoginResponseSerializer, many=False
+        ),
+        status.HTTP_400_BAD_REQUEST: response_schema(
+            status.HTTP_400_BAD_REQUEST, LoginValidateErrorSerializer
+        ),
+        status.HTTP_401_UNAUTHORIZED: response_schema(
+            status.HTTP_401_UNAUTHORIZED, ErrorResponseSerializer
+        ),
     },
 )
 
@@ -61,9 +82,15 @@ wechat_mini_login_schema_info = dict(
     description="Login with code and return a token.",
     request=WechatLoginRequestSerializer,
     responses={
-        200: response_schema(200, LoginResponseSerializer, many=False),
-        400: response_schema(400, WechatLoginValidateErrorSerializer),
-        500: response_schema(500, ErrorResponseSerializer),
+        status.HTTP_200_OK: response_schema(
+            status.HTTP_200_OK, LoginResponseSerializer, many=False
+        ),
+        status.HTTP_400_BAD_REQUEST: response_schema(
+            status.HTTP_400_BAD_REQUEST, WechatLoginValidateErrorSerializer
+        ),
+        status.HTTP_500_INTERNAL_SERVER_ERROR: response_schema(
+            status.HTTP_500_INTERNAL_SERVER_ERROR, ErrorResponseSerializer
+        ),
     },
 )
 
@@ -72,7 +99,28 @@ profile_schema_info = dict(
     summary="user_profile",
     description="**PERMISSION**: Allows access only to authenticated users.",
     responses={
-        200: response_schema(200, UserSerializer, many=False),
-        401: response_schema(401, ErrorResponseSerializer),
+        status.HTTP_200_OK: response_schema(
+            status.HTTP_200_OK, UserSerializer, many=False
+        ),
+        status.HTTP_401_UNAUTHORIZED: response_schema(
+            status.HTTP_401_UNAUTHORIZED, ErrorResponseSerializer
+        ),
+    },
+)
+
+wechat_profile_schema_info = dict(
+    tags=["user"],
+    summary="wechat_profile",
+    description="update wechat profile, eg: avatar, nickname <br>"
+    "At least one of 'nickname' or 'avatar_url' must be provided.",
+    request=WechatProfilePostSerializer,
+    responses={
+        status.HTTP_200_OK: None,
+        status.HTTP_401_UNAUTHORIZED: response_schema(
+            status.HTTP_401_UNAUTHORIZED, ErrorResponseSerializer
+        ),
+        status.HTTP_400_BAD_REQUEST: response_schema(
+            status.HTTP_400_BAD_REQUEST, ValidationNonFieldErrorSerializer
+        ),
     },
 )
