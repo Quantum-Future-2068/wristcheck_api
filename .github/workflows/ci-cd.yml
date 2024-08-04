@@ -4,9 +4,8 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
+      - dev
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [ "3.10.12", "3.12.0" ]
+        python-version: ["3.10.12", "3.12.0"]
 
     steps:
       - name: Check out the repository
@@ -35,61 +34,132 @@ jobs:
             ${{ runner.os }}-pip-
             pip-
 
+      - name: Config env
+        run: |
+          cp env_template .env
+          echo "DB_URL=sqlite:///${{ vars.ECS_PATH }}/db.sqlite3" >> .env
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Run tests
+        run: |
+          pytest
+
       - name: Black check
         run: black --check .
 
-      - name: Config env
-        run: cp env_template .env
 
-      - name: Run tests
-        run: pytest
-
-  deploy:
-    needs: build
+  deploy_staging:
     runs-on: ubuntu-latest
+    environment: staging
 
-    if: success()
+    needs: build
+
+    if: github.ref == 'refs/heads/dev'
 
     steps:
-      - name: Start the project with the latest code
-        uses: appleboy/ssh-action@master
+      - name: Check out the repository
+        uses: actions/checkout@v3
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.4
         with:
-          host: ${{ vars.ECS_HOST }}
-          username: ${{ vars.ECS_USER }}
-          key: ${{ secrets.ECS_KEY }}
-          script: |
-            if [ ! -d "${{ vars.ECS_PATH }}" ]; then
-              git clone git@github.com:Quantum-Future-2068/wristcheck_api.git ${{ vars.ECS_PATH }}
-            else
-              cd ${{ vars.ECS_PATH }}
-              git fetch origin
-              git reset --hard origin/main
-            fi
-            
+          ssh-private-key: ${{ secrets.ECS_KEY }}
+
+      - name: Deploy to staging
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} << 'EOF'
+          if [ ! -d "${{ vars.ECS_PATH }}" ]; then
+            git clone --branch dev git@github.com:Quantum-Future-2068/wristcheck_api.git ${{ vars.ECS_PATH }}
+          else
             cd ${{ vars.ECS_PATH }}
-            cat <<EOF > .env
-            ENVIRONMENT=${{ vars.ENVIRONMENT }}
-            PORT=${{ vars.PORT }}
-            ALLOWED_HOSTS=${{ vars.ALLOWED_HOSTS }}
-            CSRF_TRUSTED_ORIGINS=${{ vars.CSRF_TRUSTED_ORIGINS }}
-            CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS }}
-            WECHAT_MINI_GET_SESSION_KEY_URL=${{ vars.WECHAT_MINI_GET_SESSION_KEY_URL }}
-            WECHAT_MINI_APPID=${{ secrets.WECHAT_MINI_APPID }}
-            WECHAT_MINI_SECRET=${{ secrets.WECHAT_MINI_SECRET }}
-            WRISTCHECK_API=${{ vars.WRISTCHECK_API }}
-            OSS_ACCESS_KEY_ID=${{ secrets.OSS_ACCESS_KEY_ID }}
-            OSS_ACCESS_KEY_SECRET=${{ secrets.OSS_ACCESS_KEY_SECRET }}
-            OSS_ENDPOINT=${{ vars.OSS_ENDPOINT }}
-            OSS_BUCKET=${{ vars.OSS_BUCKET }}
-            DOMAIN=${{ vars.DOMAIN }}
-            STATIC_DOMAIN=${{ vars.STATIC_DOMAIN }}
-            EOF
-            
-            make migrate
-            make collectstatic
-            supervisorctl restart wristcheck
+            git fetch origin
+            git reset --hard origin/dev
+          fi
+          
+          cd ${{ vars.ECS_PATH }}
+          cat <<EOT > .env
+          ENVIRONMENT=staging
+          PORT=${{ vars.PORT }}
+          ALLOWED_HOSTS=${{ vars.ALLOWED_HOSTS }}
+          CSRF_TRUSTED_ORIGINS=${{ vars.CSRF_TRUSTED_ORIGINS }}
+          CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS }}
+          WECHAT_MINI_GET_SESSION_KEY_URL=${{ vars.WECHAT_MINI_GET_SESSION_KEY_URL }}
+          WECHAT_MINI_APPID=${{ secrets.WECHAT_MINI_APPID }}
+          WECHAT_MINI_SECRET=${{ secrets.WECHAT_MINI_SECRET }}
+          WRISTCHECK_API=${{ vars.WRISTCHECK_API }}
+          OSS_ACCESS_KEY_ID=${{ secrets.OSS_ACCESS_KEY_ID }}
+          OSS_ACCESS_KEY_SECRET=${{ secrets.OSS_ACCESS_KEY_SECRET }}
+          OSS_ENDPOINT=${{ vars.OSS_ENDPOINT }}
+          OSS_BUCKET=${{ vars.OSS_BUCKET }}
+          DOMAIN=${{ vars.DOMAIN }}
+          STATIC_DOMAIN=${{ vars.STATIC_DOMAIN }}
+          SENTRY_DSN_URL=${{ secrets.SENTRY_DSN_URL }}
+          CERTFILE_PATH=${{ vars.CERTFILE_PATH }}
+          KEYFILE_PATH=${{ vars.KEYFILE_PATH }}
+          DB_URL=${{ secrets.DB_URL }}
+          EOT
+          
+          make migrate
+          make collectstatic
+          make restart
+          EOF
+
+  deploy_prod:
+    runs-on: ubuntu-latest
+    environment: prod
+
+    needs: build
+
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v3
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.ECS_KEY }}
+
+      - name: Deploy to production
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} << 'EOF'
+          if [ ! -d "${{ vars.ECS_PATH }}" ]; then
+            git clone --branch main git@github.com:Quantum-Future-2068/wristcheck_api.git ${{ vars.ECS_PATH }}
+          else
+            cd ${{ vars.ECS_PATH }}
+            git fetch origin
+            git reset --hard origin/main
+          fi
+          
+          cd ${{ vars.ECS_PATH }}
+          cat <<EOT > .env
+          ENVIRONMENT=prod
+          PORT=${{ vars.PORT }}
+          ALLOWED_HOSTS=${{ vars.ALLOWED_HOSTS }}
+          CSRF_TRUSTED_ORIGINS=${{ vars.CSRF_TRUSTED_ORIGINS }}
+          CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS }}
+          WECHAT_MINI_GET_SESSION_KEY_URL=${{ vars.WECHAT_MINI_GET_SESSION_KEY_URL }}
+          WECHAT_MINI_APPID=${{ secrets.WECHAT_MINI_APPID }}
+          WECHAT_MINI_SECRET=${{ secrets.WECHAT_MINI_SECRET }}
+          WRISTCHECK_API=${{ vars.WRISTCHECK_API }}
+          OSS_ACCESS_KEY_ID=${{ secrets.OSS_ACCESS_KEY_ID }}
+          OSS_ACCESS_KEY_SECRET=${{ secrets.OSS_ACCESS_KEY_SECRET }}
+          OSS_ENDPOINT=${{ vars.OSS_ENDPOINT }}
+          OSS_BUCKET=${{ vars.OSS_BUCKET }}
+          DOMAIN=${{ vars.DOMAIN }}
+          STATIC_DOMAIN=${{ vars.STATIC_DOMAIN }}
+          SENTRY_DSN_URL=${{ secrets.SENTRY_DSN_URL }}
+          CERTFILE_PATH=${{ vars.CERTFILE_PATH }}
+          KEYFILE_PATH=${{ vars.KEYFILE_PATH }}
+          DB_URL=${{ secrets.DB_URL }}
+          EOT
+          
+          make migrate
+          make collectstatic
+          make restart
+          EOF

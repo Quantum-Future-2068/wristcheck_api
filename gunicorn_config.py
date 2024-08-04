@@ -20,5 +20,9 @@ accesslog = env.str("GUNICORN_ACCESS_LOG", "/var/log/gunicorn_access.log")
 errorlog = env.str("GUNICORN_ERROR_LOG", "/var/log/gunicorn_error.log")
 
 if env.str("ENVIRONMENT") != "local":
-    certfile = "/etc/letsencrypt/live/wristcheck.imdancer.com/fullchain.pem"
-    keyfile = "/etc/letsencrypt/live/wristcheck.imdancer.com/privkey.pem"
+    certfile = env.str(
+        "CERTFILE_PATH", "/etc/letsencrypt/live/wristcheck.imdancer.com/fullchain.pem"
+    )
+    keyfile = env.str(
+        "KEYFILE_PATH", "/etc/letsencrypt/live/wristcheck.imdancer.com/privkey.pem"
+    )

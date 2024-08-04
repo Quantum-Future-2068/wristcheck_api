@@ -4,7 +4,8 @@ WECHAT_MINI_GET_SESSION_KEY_URL=https://api.weixin.qq.com/sns/jscode2session
 WECHAT_MINI_APPID=appid
 WECHAT_MINI_SECRET=app_secret
 DEBUG=False
-# DATABASE_URL=mysql://myuser:mypassword@myhost/mydatabase
+DB_URL=sqlite:///db.sqlite3
+# DB_URL=mysql://myuser:mypassword@localhost:3306/wristcheck?charset=utf8mb4
 ALLOWED_HOSTS=wristcheck.imdancer.com,imdancer.com,114.55.108.152,127.0.0.1,localhost,https://dashboard-wristchecklab.pages.dev
 CSRF_TRUSTED_ORIGINS=https://dashboard-wristchecklab.pages.dev
 
@@ -22,3 +23,5 @@ OSS_ACCESS_KEY_ID=xxx
 OSS_ACCESS_KEY_SECRET=xxx
 OSS_ENDPOINT=oss-cn-hangzhou.aliyuncs.com
 OSS_BUCKET=wristcheck
+
+SENTRY_DSN_URL=

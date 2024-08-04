@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 import os
 from pathlib import Path
 
+import dj_database_url
 import sentry_sdk
 from dj_database_url import parse as db_url
 
@@ -93,11 +94,16 @@ WSGI_APPLICATION = "wristcheck_api.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    "default": dj_database_url.config(
+        default=env.str("DB_URL", "sqlite:///db.sqlite3")
+    ),
 }
 
 # Password validation
@@ -219,12 +225,14 @@ if env.str("ENVIRONMENT") != "local":
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", [])
 
 # https://docs.sentry.io/platforms/python/integrations/django/
-sentry_sdk.init(
-    dsn="https://1b5999f3b527314b18c4ffa17d0dfd0a@o413187.ingest.us.sentry.io/4507656363048960",
-    traces_sample_rate=1.0 if env.str("ENVIRONMENT") == "local" else 0.01,
-    profiles_sample_rate=1.0 if env.str("ENVIRONMENT") == "local" else 0.01,
-    environment=env.str("ENVIRONMENT", "local"),
-)
+if env.str("ENVIRONMENT") in ["prod", "staging"]:
+    if env.str("SENTRY_DSN_URL", ""):
+        sentry_sdk.init(
+            dsn=env.str("SENTRY_DSN_URL"),
+            traces_sample_rate=1.0 if env.str("ENVIRONMENT") == "local" else 0.01,
+            profiles_sample_rate=1.0 if env.str("ENVIRONMENT") == "local" else 0.01,
+            environment=env.str("ENVIRONMENT", "local"),
+        )
 
 # Custom User Model
 AUTH_USER_MODEL = "account.User"
