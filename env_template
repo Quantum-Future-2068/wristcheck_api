@@ -1,11 +1,9 @@
 ENVIRONMENT=local
 PORT=8000
-WECHAT_MINI_GET_SESSION_KEY_URL=https://api.weixin.qq.com/sns/jscode2session
 WECHAT_MINI_APPID=appid
 WECHAT_MINI_SECRET=app_secret
 DEBUG=False
-DB_URL=sqlite:///db.sqlite3
-# DB_URL=mysql://myuser:mypassword@localhost:3306/wristcheck?charset=utf8mb4
+DB_ENGINE=sqlite
 ALLOWED_HOSTS=wristcheck.imdancer.com,imdancer.com,114.55.108.152,127.0.0.1,localhost,https://dashboard-wristchecklab.pages.dev
 CSRF_TRUSTED_ORIGINS=https://dashboard-wristchecklab.pages.dev
 

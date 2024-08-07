@@ -104,7 +104,10 @@ class UserViewSet(CustomGetPermissionMixin, viewsets.ReadOnlyModelViewSet):
         serializer.is_valid(raise_exception=True)
         code = serializer.validated_data["code"]
         wechat_data = requests.get(
-            env.str("WECHAT_MINI_GET_SESSION_KEY_URL", ""),
+            env.str(
+                "WECHAT_MINI_GET_SESSION_KEY_URL",
+                "https://api.weixin.qq.com/sns/jscode2session",
+            ),
             {
                 "appid": env.str("WECHAT_MINI_APPID", ""),
                 "secret": env.str("WECHAT_MINI_SECRET", ""),

@@ -1,4 +1,4 @@
-name: CI/CD for Django Project
+name: CI/CD
 
 on:
   push:
@@ -8,16 +8,16 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        python-version: ["3.10.12", "3.12.0"]
+        python-version: ["3.12.0"]
 
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -51,43 +51,50 @@ jobs:
       - name: Black check
         run: black --check .
 
-
   deploy_staging:
     runs-on: ubuntu-latest
     environment: staging
 
-    needs: build
+    needs: test
 
     if: github.ref == 'refs/heads/dev'
 
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.5.4
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          ssh-private-key: ${{ secrets.ECS_KEY }}
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Deploy to staging
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to AliCloud Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ vars.ALIYUN_CONTAINER_REGISTRY }}
+          username: ${{ secrets.ALIYUN_CONTAINER_USERNAME }}
+          password: ${{ secrets.ALIYUN_CONTAINER_PASSWORD }}
+
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ vars.ALIYUN_CONTAINER_REGISTRY }}/${{ secrets.ALIYUN_CONTAINER_USERNAME }}/${{ vars.REPO_NAME }}_${{ vars.ENVIRONMENT }}:${{ github.ref_name }}-latest
+
+      - name: Generate .env file
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} << 'EOF'
-          if [ ! -d "${{ vars.ECS_PATH }}" ]; then
-            git clone --branch dev git@github.com:Quantum-Future-2068/wristcheck_api.git ${{ vars.ECS_PATH }}
-          else
-            cd ${{ vars.ECS_PATH }}
-            git fetch origin
-            git reset --hard origin/dev
-          fi
-          
-          cd ${{ vars.ECS_PATH }}
           cat <<EOT > .env
-          ENVIRONMENT=staging
+          ENVIRONMENT=${{ vars.ENVIRONMENT }}
           PORT=${{ vars.PORT }}
           ALLOWED_HOSTS=${{ vars.ALLOWED_HOSTS }}
           CSRF_TRUSTED_ORIGINS=${{ vars.CSRF_TRUSTED_ORIGINS }}
           CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS }}
-          WECHAT_MINI_GET_SESSION_KEY_URL=${{ vars.WECHAT_MINI_GET_SESSION_KEY_URL }}
           WECHAT_MINI_APPID=${{ secrets.WECHAT_MINI_APPID }}
           WECHAT_MINI_SECRET=${{ secrets.WECHAT_MINI_SECRET }}
           WRISTCHECK_API=${{ vars.WRISTCHECK_API }}
@@ -95,55 +102,192 @@ jobs:
           OSS_ACCESS_KEY_SECRET=${{ secrets.OSS_ACCESS_KEY_SECRET }}
           OSS_ENDPOINT=${{ vars.OSS_ENDPOINT }}
           OSS_BUCKET=${{ vars.OSS_BUCKET }}
-          DOMAIN=${{ vars.DOMAIN }}
+          API_DOMAIN=${{ vars.API_DOMAIN }}
           STATIC_DOMAIN=${{ vars.STATIC_DOMAIN }}
           SENTRY_DSN_URL=${{ secrets.SENTRY_DSN_URL }}
-          CERTFILE_PATH=${{ vars.CERTFILE_PATH }}
-          KEYFILE_PATH=${{ vars.KEYFILE_PATH }}
-          DB_URL=${{ secrets.DB_URL }}
+          DB_ENGINE=${{ vars.DB_ENGINE }}
+          DB_NAME=${{ vars.DB_NAME }}
+          DB_USER=${{ vars.DB_USER }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
           EOT
-          
-          make migrate
-          make collectstatic
-          make restart
+
+      - name: Generate Caddy config file
+        run: |
+          cat <<EOF > Caddyfile
+          {
+              admin :2019
+          }
+
+           ${{ vars.API_DOMAIN }} {
+              reverse_proxy ${{ vars.REPO_NAME }}:${{ vars.PORT }} {
+                  header_up X-Real-IP {remote_host}
+                  header_up X-Forwarded-For {remote_host}
+                  header_up Host {host}
+              }
+          }
+
+          ${{ vars.PORTAINER_DOMAIN }} {
+              reverse_proxy portainer:9443 {
+                  transport http {
+                      tls_insecure_skip_verify
+                  }
+                  header_up X-Real-IP {remote_host}
+                  header_up X-Forwarded-For {remote_host}
+                  header_up Host {host}
+              }
+          }
           EOF
+
+
+      - name: Generate docker-compose.yml file
+        run: |
+          cat <<EOF > docker-compose.yml
+          version: '3'
+
+          services:
+            mysql:
+              image: mysql:8.0
+              container_name: mysql
+              ports:
+                - "3306:3306"
+              environment:
+                MYSQL_DATABASE: ${{ vars.DB_NAME }}
+                MYSQL_USER: ${{ vars.DB_USER }}
+                MYSQL_PASSWORD: ${{ secrets.DB_PASSWORD }}
+                MYSQL_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
+              command:
+                --character-set-server=utf8mb4
+                --collation-server=utf8mb4_unicode_ci
+                --innodb_buffer_pool_size=1G
+                --max_connections=200
+                --slow_query_log=1
+                --slow_query_log_file=/var/lib/mysql/mysql-slow.log
+                --long_query_time=3
+              volumes:
+                - mysql_data:/var/lib/mysql
+              networks:
+                - my_network
+          
+            caddy:
+              image: caddy:latest
+              container_name: caddy
+              ports:
+                - "443:443"
+                - "2019:2019"
+              volumes:
+                - /root/Caddyfile:/etc/caddy/Caddyfile
+                - caddy_data:/data
+              networks:
+                - my_network
+
+            ${{ vars.REPO_NAME }}:
+              image: ${{ vars.ALIYUN_CONTAINER_REGISTRY }}/${{ secrets.ALIYUN_CONTAINER_USERNAME }}/${{ vars.REPO_NAME }}_${{ vars.ENVIRONMENT }}:${{ github.ref_name }}-latest
+              container_name: ${{ vars.REPO_NAME }}
+              env_file: .env
+              depends_on:
+                - mysql
+              networks:
+                - my_network
+
+            portainer:
+              image: ${{ vars.ALIYUN_CONTAINER_REGISTRY }}/${{ secrets.ALIYUN_CONTAINER_USERNAME }}/portainer:2.20.3
+
+              container_name: portainer
+              ports:
+                - "8000:8000"
+                - "9443:9443"
+              volumes:
+                - /var/run/docker.sock:/var/run/docker.sock
+                - portainer_data:/data
+              networks:
+                - my_network
+
+          volumes:
+            caddy_data:
+            portainer_data:
+            mysql_data:
+
+          networks:
+            my_network:
+          EOF
+
+      - name: Check if it's the first deployment
+        id: check-first-deployment
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker ps -q --filter 'name=caddy' | wc -l" > result.txt
+          result=$(cat result.txt)
+          if [ "$result" -eq 0 ]; then
+            echo "::set-output name=first_deployment::true"
+          else
+            echo "::set-output name=first_deployment::false"
+          fi
+
+      - name: Copy files to remote server
+        run: |
+          scp .env ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }}:/root
+          scp Caddyfile ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }}:/root
+          scp docker-compose.yml ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }}:/root
+
+      - name: Deploy all containers on first deployment
+        if: steps.check-first-deployment.outputs.first_deployment == 'true'
+        run: |
+          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker login --username=${{ secrets.ALIYUN_CONTAINER_USERNAME }} --password=${{ secrets.ALIYUN_CONTAINER_PASSWORD }} ${{ vars.ALIYUN_CONTAINER_REGISTRY }}"
+          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker-compose -f /root/docker-compose.yml up -d"
+
+      - name: Deploy only the business container on subsequent deployments
+        if: steps.check-first-deployment.outputs.first_deployment == 'false'
+        run: |
+          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker login --username=${{ secrets.ALIYUN_CONTAINER_USERNAME }} --password=${{ secrets.ALIYUN_CONTAINER_PASSWORD }} ${{ vars.ALIYUN_CONTAINER_REGISTRY }}"
+          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker-compose -f /root/docker-compose.yml pull ${{ vars.REPO_NAME }}" 
+          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker-compose -f /root/docker-compose.yml stop ${{ vars.REPO_NAME }}"
+          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker rm -f ${{ vars.REPO_NAME }}"
+          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker-compose -f /root/docker-compose.yml up -d ${{ vars.REPO_NAME }}"
+          
 
   deploy_prod:
     runs-on: ubuntu-latest
     environment: prod
 
-    needs: build
+    needs: test
 
     if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.5.4
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          ssh-private-key: ${{ secrets.ECS_KEY }}
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Deploy to production
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to AliCloud Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ vars.ALIYUN_CONTAINER_REGISTRY }}
+          username: ${{ secrets.ALIYUN_CONTAINER_USERNAME }}
+          password: ${{ secrets.ALIYUN_CONTAINER_PASSWORD }}
+
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ vars.ALIYUN_CONTAINER_REGISTRY }}/${{ secrets.ALIYUN_CONTAINER_USERNAME }}/${{ vars.REPO_NAME }}_${{ vars.ENVIRONMENT }}:${{ github.ref_name }}-latest
+
+      - name: Generate .env file
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} << 'EOF'
-          if [ ! -d "${{ vars.ECS_PATH }}" ]; then
-            git clone --branch main git@github.com:Quantum-Future-2068/wristcheck_api.git ${{ vars.ECS_PATH }}
-          else
-            cd ${{ vars.ECS_PATH }}
-            git fetch origin
-            git reset --hard origin/main
-          fi
-          
-          cd ${{ vars.ECS_PATH }}
           cat <<EOT > .env
-          ENVIRONMENT=prod
+          ENVIRONMENT=${{ vars.ENVIRONMENT }}
           PORT=${{ vars.PORT }}
           ALLOWED_HOSTS=${{ vars.ALLOWED_HOSTS }}
           CSRF_TRUSTED_ORIGINS=${{ vars.CSRF_TRUSTED_ORIGINS }}
           CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS }}
-          WECHAT_MINI_GET_SESSION_KEY_URL=${{ vars.WECHAT_MINI_GET_SESSION_KEY_URL }}
           WECHAT_MINI_APPID=${{ secrets.WECHAT_MINI_APPID }}
           WECHAT_MINI_SECRET=${{ secrets.WECHAT_MINI_SECRET }}
           WRISTCHECK_API=${{ vars.WRISTCHECK_API }}
@@ -151,15 +295,117 @@ jobs:
           OSS_ACCESS_KEY_SECRET=${{ secrets.OSS_ACCESS_KEY_SECRET }}
           OSS_ENDPOINT=${{ vars.OSS_ENDPOINT }}
           OSS_BUCKET=${{ vars.OSS_BUCKET }}
-          DOMAIN=${{ vars.DOMAIN }}
+          API_DOMAIN=${{ vars.API_DOMAIN }}
           STATIC_DOMAIN=${{ vars.STATIC_DOMAIN }}
           SENTRY_DSN_URL=${{ secrets.SENTRY_DSN_URL }}
-          CERTFILE_PATH=${{ vars.CERTFILE_PATH }}
-          KEYFILE_PATH=${{ vars.KEYFILE_PATH }}
-          DB_URL=${{ secrets.DB_URL }}
+          DB_ENGINE=${{ vars.DB_ENGINE }}
+          DB_NAME=${{ vars.DB_NAME }}
+          DB_USER=${{ vars.DB_USER }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
           EOT
-          
-          make migrate
-          make collectstatic
-          make restart
+
+      - name: Generate Caddy config file
+        run: |
+          cat <<EOF > Caddyfile
+          {
+              admin :2019
+          }
+
+           ${{ vars.API_DOMAIN }} {
+              reverse_proxy ${{ vars.REPO_NAME }}:${{ vars.PORT }} {
+                  header_up X-Real-IP {remote_host}
+                  header_up X-Forwarded-For {remote_host}
+                  header_up Host {host}
+              }
+          }
+
+          ${{ vars.PORTAINER_DOMAIN }} {
+              reverse_proxy portainer:9443 {
+                  transport http {
+                      tls_insecure_skip_verify
+                  }
+                  header_up X-Real-IP {remote_host}
+                  header_up X-Forwarded-For {remote_host}
+                  header_up Host {host}
+              }
+          }
           EOF
+
+
+      - name: Generate docker-compose.yml file
+        run: |
+          cat <<EOF > docker-compose.yml
+          version: '3'
+
+          services:
+            caddy:
+              image: caddy:latest
+              container_name: caddy
+              ports:
+                - "443:443"
+                - "2019:2019"
+              volumes:
+                - /root/Caddyfile:/etc/caddy/Caddyfile
+                - caddy_data:/data
+              networks:
+                - my_network
+
+            ${{ vars.REPO_NAME }}:
+              image: ${{ vars.ALIYUN_CONTAINER_REGISTRY }}/${{ secrets.ALIYUN_CONTAINER_USERNAME }}/${{ vars.REPO_NAME }}_${{ vars.ENVIRONMENT }}:${{ github.ref_name }}-latest
+              container_name: ${{ vars.REPO_NAME }}
+              env_file: .env
+              networks:
+                - my_network
+
+            portainer:
+              image: ${{ vars.ALIYUN_CONTAINER_REGISTRY }}/${{ secrets.ALIYUN_CONTAINER_USERNAME }}/portainer:2.20.3
+
+              container_name: portainer
+              ports:
+                - "8000:8000"
+                - "9443:9443"
+              volumes:
+                - /var/run/docker.sock:/var/run/docker.sock
+                - portainer_data:/data
+              networks:
+                - my_network
+
+          volumes:
+            caddy_data:
+            portainer_data:
+
+          networks:
+            my_network:
+          EOF
+
+      - name: Check if it's the first deployment
+        id: check-first-deployment
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker ps -q --filter 'name=caddy' | wc -l" > result.txt
+          result=$(cat result.txt)
+          if [ "$result" -eq 0 ]; then
+            echo "::set-output name=first_deployment::true"
+          else
+            echo "::set-output name=first_deployment::false"
+          fi
+
+      - name: Copy files to remote server
+        run: |
+          scp .env ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }}:/root
+          scp Caddyfile ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }}:/root
+          scp docker-compose.yml ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }}:/root
+
+      - name: Deploy all containers on first deployment
+        if: steps.check-first-deployment.outputs.first_deployment == 'true'
+        run: |
+          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker login --username=${{ secrets.ALIYUN_CONTAINER_USERNAME }} --password=${{ secrets.ALIYUN_CONTAINER_PASSWORD }} ${{ vars.ALIYUN_CONTAINER_REGISTRY }}"
+          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker-compose -f /root/docker-compose.yml up -d"
+
+      - name: Deploy only the business container on subsequent deployments
+        if: steps.check-first-deployment.outputs.first_deployment == 'false'
+        run: |
+          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker login --username=${{ secrets.ALIYUN_CONTAINER_USERNAME }} --password=${{ secrets.ALIYUN_CONTAINER_PASSWORD }} ${{ vars.ALIYUN_CONTAINER_REGISTRY }}"
+          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker-compose -f /root/docker-compose.yml pull ${{ vars.REPO_NAME }}" 
+          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker-compose -f /root/docker-compose.yml stop ${{ vars.REPO_NAME }}"
+          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker rm -f ${{ vars.REPO_NAME }}"
+          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker-compose -f /root/docker-compose.yml up -d ${{ vars.REPO_NAME }}"
