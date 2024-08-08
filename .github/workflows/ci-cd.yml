@@ -189,6 +189,11 @@ jobs:
                 - mysql
               networks:
                 - my_network
+              logging:
+                driver: "json-file"
+                options:
+                  max-size: "10m"
+                  max-file: "10"
 
             portainer:
               image: ${{ vars.ALIYUN_CONTAINER_REGISTRY }}/${{ secrets.ALIYUN_CONTAINER_USERNAME }}/portainer:2.20.3
@@ -357,6 +362,11 @@ jobs:
               env_file: .env
               networks:
                 - my_network
+              logging:
+                driver: "json-file"
+                options:
+                  max-size: "10m"
+                  max-file: "10"
 
             portainer:
               image: ${{ vars.ALIYUN_CONTAINER_REGISTRY }}/${{ secrets.ALIYUN_CONTAINER_USERNAME }}/portainer:2.20.3
@@ -407,6 +417,4 @@ jobs:
         run: |
           ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker login --username=${{ secrets.ALIYUN_CONTAINER_USERNAME }} --password=${{ secrets.ALIYUN_CONTAINER_PASSWORD }} ${{ vars.ALIYUN_CONTAINER_REGISTRY }}"
           ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker compose -f /root/docker-compose.yml pull ${{ vars.REPO_NAME }}" 
-          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker compose -f /root/docker-compose.yml stop ${{ vars.REPO_NAME }}"
-          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker rm -f ${{ vars.REPO_NAME }}"
           ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker compose -f /root/docker-compose.yml up -d ${{ vars.REPO_NAME }}"

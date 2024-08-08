@@ -14,7 +14,6 @@ daemon = False
 wsgi_app = "wristcheck_api.wsgi:application"
 preload_app = True
 proc_name = "wristcheck_api"
-loglevel = env.str("GUNICORN_LOG_LEVEL", "debug")
 accesslog = "-"  # 将访问日志输出到标准输出
 errorlog = "-"  # 将错误日志输出到标准错误
 loglevel = "info"  # 设置日志级别
