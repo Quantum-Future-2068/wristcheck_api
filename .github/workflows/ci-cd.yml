@@ -106,6 +106,7 @@ jobs:
           STATIC_DOMAIN=${{ vars.STATIC_DOMAIN }}
           SENTRY_DSN_URL=${{ secrets.SENTRY_DSN_URL }}
           DB_ENGINE=${{ vars.DB_ENGINE }}
+          DB_HOST=${{ vars.DB_HOST }}
           DB_NAME=${{ vars.DB_NAME }}
           DB_USER=${{ vars.DB_USER }}
           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
@@ -300,6 +301,7 @@ jobs:
           STATIC_DOMAIN=${{ vars.STATIC_DOMAIN }}
           SENTRY_DSN_URL=${{ secrets.SENTRY_DSN_URL }}
           DB_ENGINE=${{ vars.DB_ENGINE }}
+          DB_HOST=${{ vars.DB_HOST }}
           DB_NAME=${{ vars.DB_NAME }}
           DB_USER=${{ vars.DB_USER }}
           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
