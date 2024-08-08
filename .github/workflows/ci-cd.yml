@@ -85,7 +85,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ vars.ALIYUN_CONTAINER_REGISTRY }}/${{ secrets.ALIYUN_CONTAINER_USERNAME }}/${{ vars.REPO_NAME }}_${{ vars.ENVIRONMENT }}:${{ github.ref_name }}-latest
+          tags: ${{ vars.ALIYUN_CONTAINER_REGISTRY }}/${{ secrets.ALIYUN_CONTAINER_USERNAME }}/${{ vars.REPO_NAME }}_${{ vars.ENVIRONMENT }}:${{ github.sha }}
 
       - name: Generate .env file
         run: |
@@ -182,7 +182,7 @@ jobs:
                 - my_network
 
             ${{ vars.REPO_NAME }}:
-              image: ${{ vars.ALIYUN_CONTAINER_REGISTRY }}/${{ secrets.ALIYUN_CONTAINER_USERNAME }}/${{ vars.REPO_NAME }}_${{ vars.ENVIRONMENT }}:${{ github.ref_name }}-latest
+              image: ${{ vars.ALIYUN_CONTAINER_REGISTRY }}/${{ secrets.ALIYUN_CONTAINER_USERNAME }}/${{ vars.REPO_NAME }}_${{ vars.ENVIRONMENT }}:${{ github.sha }}
               container_name: ${{ vars.REPO_NAME }}
               env_file: .env
               depends_on:
@@ -241,8 +241,8 @@ jobs:
           ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker login --username=${{ secrets.ALIYUN_CONTAINER_USERNAME }} --password=${{ secrets.ALIYUN_CONTAINER_PASSWORD }} ${{ vars.ALIYUN_CONTAINER_REGISTRY }}"
           ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker-compose -f /root/docker-compose.yml pull ${{ vars.REPO_NAME }}" 
           ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker-compose -f /root/docker-compose.yml up -d mysql"
-          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker-compose -f /root/docker-compose.yml stop ${{ vars.REPO_NAME }}"
-          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker rm -f ${{ vars.REPO_NAME }}"
+#          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker-compose -f /root/docker-compose.yml stop ${{ vars.REPO_NAME }}"
+#          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker rm -f ${{ vars.REPO_NAME }}"
           ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker-compose -f /root/docker-compose.yml up -d ${{ vars.REPO_NAME }}"
           
 
@@ -280,7 +280,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ vars.ALIYUN_CONTAINER_REGISTRY }}/${{ secrets.ALIYUN_CONTAINER_USERNAME }}/${{ vars.REPO_NAME }}_${{ vars.ENVIRONMENT }}:${{ github.ref_name }}-latest
+          tags: ${{ vars.ALIYUN_CONTAINER_REGISTRY }}/${{ secrets.ALIYUN_CONTAINER_USERNAME }}/${{ vars.REPO_NAME }}_${{ vars.ENVIRONMENT }}:${{ github.sha }}
 
       - name: Generate .env file
         run: |
@@ -354,7 +354,7 @@ jobs:
                 - my_network
 
             ${{ vars.REPO_NAME }}:
-              image: ${{ vars.ALIYUN_CONTAINER_REGISTRY }}/${{ secrets.ALIYUN_CONTAINER_USERNAME }}/${{ vars.REPO_NAME }}_${{ vars.ENVIRONMENT }}:${{ github.ref_name }}-latest
+              image: ${{ vars.ALIYUN_CONTAINER_REGISTRY }}/${{ secrets.ALIYUN_CONTAINER_USERNAME }}/${{ vars.REPO_NAME }}_${{ vars.ENVIRONMENT }}:${{ github.sha }}
               container_name: ${{ vars.REPO_NAME }}
               env_file: .env
               networks:
