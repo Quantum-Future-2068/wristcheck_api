@@ -198,18 +198,34 @@ SPECTACULAR_SETTINGS = {
     "SWAGGER_UI_FAVICON_HREF": "https://wristcheck.com/images/favicon.ico",
 }
 
+from logging.handlers import RotatingFileHandler
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+    },
     "handlers": {
         "console": {
             "level": "DEBUG",
             "class": "logging.StreamHandler",
+            "formatter": "verbose",
         },
         "file": {
             "level": "DEBUG",
-            "class": "logging.FileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "filename": env.str("DJANGO_PROJECT_LOG", "/var/log/wristcheck.log"),
+            "formatter": "verbose",
+            "maxBytes": 10485760,  # 10 MB
+            "backupCount": 5,
         },
     },
     "loggers": {
@@ -234,6 +250,7 @@ LOGGING = {
         },
     },
 }
+
 
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", [])
 
