@@ -247,6 +247,7 @@ jobs:
           ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker compose -f /root/docker-compose.yml pull ${{ vars.REPO_NAME }}" 
           ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker compose -f /root/docker-compose.yml up -d mysql"
           ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker compose -f /root/docker-compose.yml up -d ${{ vars.REPO_NAME }}"
+          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker system prune -a -f"
           
 
   deploy_prod:
@@ -418,3 +419,4 @@ jobs:
           ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker login --username=${{ secrets.ALIYUN_CONTAINER_USERNAME }} --password=${{ secrets.ALIYUN_CONTAINER_PASSWORD }} ${{ vars.ALIYUN_CONTAINER_REGISTRY }}"
           ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker compose -f /root/docker-compose.yml pull ${{ vars.REPO_NAME }}" 
           ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker compose -f /root/docker-compose.yml up -d ${{ vars.REPO_NAME }}"
+          ssh ${{ vars.ECS_USER }}@${{ vars.ECS_HOST }} "docker system prune -a -f"
